@@ -124,9 +124,7 @@ const main = async () => {
     return;
   }
 
-  const labelsToAdd: string[] = [];
-  const outPutAssessments = [];
-  for (const promptFile of promptFiles) {
+  const processPrompt = async (promptFile: string) => {
     console.log(`Using prompt file: ${promptFile}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
 
@@ -163,24 +161,36 @@ const main = async () => {
         aiResponse,
         aiAssessmentRegex,
       );
-      labelsToAdd.push(assessmentLabel);
 
       writeActionSummary({
         promptFile,
         aiResponse,
         assessmentLabel,
       });
-      outPutAssessments.push({
-        prompt: promptFile,
-        assessmentLabel,
-        response: aiResponse,
-      });
+
+      return {
+        label: assessmentLabel,
+        assessment: {
+          prompt: promptFile,
+          assessmentLabel,
+          response: aiResponse,
+        },
+      };
     } else {
       console.log("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
-      labelsToAdd.push(`ai:${fileName}:unable-to-process`);
+      return {
+        label: `ai:${fileName}:unable-to-process`,
+        assessment: null,
+      };
     }
-  }
+  };
+
+  const results = await Promise.all(promptFiles.map(processPrompt));
+  const labelsToAdd = results.map((r) => r.label);
+  const outPutAssessments = results
+    .map((r) => r.assessment)
+    .filter((a) => a !== null);
 
   setOutput("ai_assessments", JSON.stringify(outPutAssessments));
 
