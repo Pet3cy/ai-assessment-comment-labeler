@@ -31061,7 +31061,6 @@ var getRegexFromString = (regexString, regexFlags) => {
   let regex;
   try {
     regex = new RegExp(regexString, regexFlags);
-    console.log("Debug: Constructed regex:", regex);
   } catch (error) {
     throw new Error(`Invalid regex pattern or flags provided: pattern="${regexString}", flags="${regexFlags}". Error: ${error}`);
   }
