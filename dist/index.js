@@ -31083,7 +31083,6 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${matchedAssessment}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
@@ -31097,10 +31096,10 @@ var getPromptFilesFromLabels = ({
 }) => {
   const promptFiles = [];
   const labelsToPromptsMappingArr = labelsToPromptsMapping.split("|");
+  const issueLabelNames = new Set(issueLabels.map((l) => l?.name));
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    const labelMatch = issueLabels.some((label) => label?.name == labelPromptArr[0]);
-    if (labelMatch) {
+    if (issueLabelNames.has(labelPromptArr[0])) {
       promptFiles.push(labelPromptArr[1]);
     }
   }
