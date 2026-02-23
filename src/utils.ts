@@ -11,6 +11,10 @@ import type {
 
 const MAX_TOKENS = 200;
 
+export const sanitizeLog = (message: any): string => {
+  return String(message).replace(/\r/g, "\\r").replace(/\n/g, "\\n");
+};
+
 export const getRegexFromString = (
   regexString: string,
   regexFlags: string,
@@ -18,7 +22,7 @@ export const getRegexFromString = (
   let regex;
   try {
     regex = new RegExp(regexString, regexFlags);
-    console.log("Debug: Constructed regex:", regex);
+    console.log("Debug: Constructed regex:", sanitizeLog(regex));
   } catch (error) {
     throw new Error(
       `Invalid regex pattern or flags provided: pattern="${regexString}", flags="${regexFlags}". Error: ${error}`,
@@ -59,7 +63,7 @@ export const getAILabelAssessmentValue = (
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${matchedAssessment}`);
+      console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }

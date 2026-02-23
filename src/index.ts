@@ -8,6 +8,7 @@ import {
   getPromptOptions,
   getRegexFromString,
   getBaseFilename,
+  sanitizeLog,
 } from "./utils";
 import {
   getIssueLabels,
@@ -190,7 +191,7 @@ const main = async () => {
   }
 
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
+    console.log(`Adding labels: ${sanitizeLog(labelsToAdd.join(", "))}`);
     await addIssueLabels({
       octokit,
       owner,

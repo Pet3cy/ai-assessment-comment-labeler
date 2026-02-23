@@ -4,6 +4,7 @@ import type {
   AddIssueLabelsFn,
   RemoveIssueLabelFn,
 } from "./types";
+import { sanitizeLog } from "./utils";
 
 export const createIssueComment: CreateIssueCommentFn = async ({
   octokit,
@@ -20,7 +21,10 @@ export const createIssueComment: CreateIssueCommentFn = async ({
       body,
     });
     if (response.status === 201) {
-      console.log("Comment created successfully:", response.data.html_url);
+      console.log(
+        "Comment created successfully:",
+        sanitizeLog(response.data.html_url),
+      );
       return true;
     } else {
       console.error("Failed to create comment:", response.status);
@@ -78,7 +82,9 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
       issue_number,
       name: label,
     });
-    console.log(`Label "${label}" removed from issue #${issue_number}`);
+    console.log(
+      `Label "${sanitizeLog(label)}" removed from issue #${issue_number}`,
+    );
   } catch (error) {
     console.error("Error removing labels from issue:", error);
   }

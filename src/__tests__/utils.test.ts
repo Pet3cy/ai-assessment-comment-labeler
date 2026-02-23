@@ -5,7 +5,30 @@ import {
   getPromptFilesFromLabels,
   getRegexFromString,
   getBaseFilename,
+  sanitizeLog,
 } from "../utils";
+import { spyOn, afterEach } from "bun:test";
+
+describe("sanitizeLog", () => {
+  it("should escape newline characters", () => {
+    expect(sanitizeLog("line1\nline2")).toBe("line1\\nline2");
+  });
+
+  it("should escape carriage return characters", () => {
+    expect(sanitizeLog("line1\rline2")).toBe("line1\\rline2");
+  });
+
+  it("should escape both newline and carriage return characters", () => {
+    expect(sanitizeLog("line1\r\nline2")).toBe("line1\\r\\nline2");
+  });
+
+  it("should handle non-string inputs", () => {
+    expect(sanitizeLog(123)).toBe("123");
+    expect(sanitizeLog(true)).toBe("true");
+    expect(sanitizeLog(null)).toBe("null");
+    expect(sanitizeLog(undefined)).toBe("undefined");
+  });
+});
 
 describe("getPromptOptions", () => {
   it("should return the system content field from test-intake.yml", () => {
@@ -35,6 +58,25 @@ describe("getPromptOptions", () => {
 
 describe("getAILabelAssessmentValue", () => {
   const aiAssessmentRegex = new RegExp("^###.*assessment:\\s*(.+)$", "i");
+
+  afterEach(() => {
+    // @ts-ignore
+    if (console.log.mockRestore) {
+      // @ts-ignore
+      console.log.mockRestore();
+    }
+  });
+
+  it("should log sanitized assessment", () => {
+    const logSpy = spyOn(console, "log");
+    const aiResponse = "### Alignment Assessment: Aligned\nwith injection";
+    getAILabelAssessmentValue(
+      "test.prompt.yml",
+      aiResponse,
+      aiAssessmentRegex,
+    );
+    expect(logSpy).toHaveBeenCalledWith("Assessment found: aligned\\nwith injection");
+  });
 
   it("should return 'ai:aligned' for aligned assessment", () => {
     const aiResponse =
