@@ -195,6 +195,63 @@ describe("api", () => {
   });
 
   describe("getIssueLabels", () => {
+    it("should return an empty array if no labels are found", async () => {
+      const listLabelsMock = mock(() => Promise.resolve({ data: [] }));
+      const octokit = {
+        rest: {
+          issues: {
+            listLabelsOnIssue: listLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+      });
+
+      expect(result).toEqual([]);
+      expect(listLabelsMock).toHaveBeenCalledWith({
+        owner,
+        repo,
+        issue_number: issueNumber,
+      });
+    });
+
+    it("should handle malformed response", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      try {
+        const listLabelsMock = mock(() => Promise.resolve({} as any));
+        const octokit = {
+          rest: {
+            issues: {
+              listLabelsOnIssue: listLabelsMock,
+            },
+          },
+        } as unknown as InstanceType<typeof GitHub>;
+
+        const result = await getIssueLabels({
+          octokit,
+          owner,
+          repo,
+          issueNumber,
+        });
+
+        expect(result).toBeUndefined();
+        expect(consoleSpy).toHaveBeenCalledWith(
+          "Error listing labels on issue:",
+          expect.any(TypeError),
+        );
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
     it("should return labels for an issue", async () => {
       const listLabelsMock = mock(() =>
         Promise.resolve({ data: [{ name: "label1" }, { name: "label2" }] }),
