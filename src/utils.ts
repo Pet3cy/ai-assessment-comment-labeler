@@ -124,3 +124,10 @@ export const getPromptOptions: GetPromptOptions = (
     }
   }
 };
+
+export const sanitizeLog = (input: unknown): string => {
+  if (typeof input !== "string") {
+    return JSON.stringify(input);
+  }
+  return JSON.stringify(input).slice(1, -1);
+};

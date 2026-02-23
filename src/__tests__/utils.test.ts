@@ -5,6 +5,7 @@ import {
   getPromptFilesFromLabels,
   getRegexFromString,
   getBaseFilename,
+  sanitizeLog,
 } from "../utils";
 
 describe("getPromptOptions", () => {
@@ -186,5 +187,35 @@ describe("getBaseFilename", () => {
   it("should return the original filename if no prompt extension", () => {
     const result = getBaseFilename("test.txt");
     expect(result).toEqual("test.txt");
+  });
+});
+
+describe("sanitizeLog", () => {
+  it("should return the string as is if no control characters", () => {
+    expect(sanitizeLog("hello")).toBe("hello");
+  });
+
+  it("should escape newlines", () => {
+    expect(sanitizeLog("hello\nworld")).toBe("hello\\nworld");
+  });
+
+  it("should escape carriage returns", () => {
+    expect(sanitizeLog("hello\rworld")).toBe("hello\\rworld");
+  });
+
+  it("should escape tabs", () => {
+    expect(sanitizeLog("hello\tworld")).toBe("hello\\tworld");
+  });
+
+  it("should escape ANSI codes", () => {
+    expect(sanitizeLog("\x1B[31mhello\x1B[0m")).toBe(
+      "\\u001b[31mhello\\u001b[0m",
+    );
+  });
+
+  it("should handle non-string inputs", () => {
+    expect(sanitizeLog(123)).toBe("123");
+    expect(sanitizeLog({ a: 1 })).toBe('{"a":1}');
+    expect(sanitizeLog(null)).toBe("null");
   });
 });
