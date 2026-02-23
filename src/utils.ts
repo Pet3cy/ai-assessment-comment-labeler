@@ -73,12 +73,12 @@ export const getPromptFilesFromLabels = ({
 }: GetPromptFileFromLabelsParams): string[] => {
   const promptFiles = [];
   const labelsToPromptsMappingArr = labelsToPromptsMapping.split("|");
+  // Optimization: Create a Set for O(1) lookup
+  const issueLabelNames = new Set(issueLabels.map((l) => l?.name));
+
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    const labelMatch = issueLabels.some(
-      (label) => label?.name == labelPromptArr[0],
-    );
-    if (labelMatch) {
+    if (issueLabelNames.has(labelPromptArr[0])) {
       promptFiles.push(labelPromptArr[1]);
     }
   }
