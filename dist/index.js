@@ -31052,8 +31052,10 @@ var jsYaml = {
 };
 var js_yaml_default = jsYaml;
 
+// src/constants.ts
+var DEFAULT_MAX_TOKENS = 200;
+
 // src/utils.ts
-var MAX_TOKENS = 200;
 var getRegexFromString = (regexString, regexFlags) => {
   let regex;
   try {
@@ -31119,7 +31121,7 @@ var getPromptOptions = (promptFile, promptsDirectory) => {
     return {
       systemMsg: systemMsg.content,
       model: yamlData?.model,
-      maxTokens: yamlData?.modelParameters?.max_tokens || MAX_TOKENS
+      maxTokens: yamlData?.modelParameters?.max_tokens || DEFAULT_MAX_TOKENS
     };
   } catch (error) {
     if (error instanceof Error) {

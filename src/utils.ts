@@ -8,8 +8,7 @@ import type {
   WriteActionSummaryParams,
   YamlData,
 } from "./types";
-
-const MAX_TOKENS = 200;
+import { DEFAULT_MAX_TOKENS } from "./constants";
 
 export const getRegexFromString = (
   regexString: string,
@@ -119,7 +118,7 @@ export const getPromptOptions: GetPromptOptions = (
     return {
       systemMsg: systemMsg.content,
       model: yamlData?.model,
-      maxTokens: yamlData?.modelParameters?.max_tokens || MAX_TOKENS,
+      maxTokens: yamlData?.modelParameters?.max_tokens || DEFAULT_MAX_TOKENS,
     };
   } catch (error) {
     if (error instanceof Error) {

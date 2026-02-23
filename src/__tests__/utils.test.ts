@@ -31,6 +31,15 @@ describe("getPromptOptions", () => {
       maxTokens: 100,
     });
   });
+  it("should return the default maxTokens when not provided in the prompt file", () => {
+    expect(
+      getPromptOptions("test-default.yml", "./src/__tests__/test_prompts"),
+    ).toEqual({
+      systemMsg: "System prompt",
+      model: "openai/gpt-4o-mini",
+      maxTokens: 200,
+    });
+  });
 });
 
 describe("getAILabelAssessmentValue", () => {
