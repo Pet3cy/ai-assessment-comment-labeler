@@ -1,3 +1,5 @@
+import ModelClient from "@azure-rest/ai-inference";
+import { AzureKeyCredential } from "@azure/core-auth";
 import { context, getOctokit } from "@actions/github";
 import { getInput, setOutput } from "@actions/core";
 import { aiInference } from "./ai";
@@ -68,6 +70,8 @@ const main = async () => {
     ? parseInt(getInput("max_tokens"), 10)
     : undefined;
 
+  const client = ModelClient(endpoint, new AzureKeyCredential(token));
+
   // Optional suppressing inputs
   const suppressLabelsInput = getInput("suppress_labels") === "true";
   const suppressCommentsInput = getInput("suppress_comments") === "true";
@@ -129,7 +133,7 @@ const main = async () => {
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
 
     const aiResponse = await aiInference({
-      token,
+      client,
       content: issueBody,
       systemPromptMsg: promptOptions.systemMsg,
       endpoint: endpoint,

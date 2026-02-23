@@ -1,3 +1,7 @@
+import ModelClient from "@azure-rest/ai-inference";
+
+type ModelClientType = ReturnType<typeof ModelClient>;
+
 import { GitHub } from "@actions/github/lib/utils";
 
 export type AiInferenceFn = (
@@ -7,9 +11,9 @@ export type AiInferenceFn = (
 interface AiInferenceParams {
   systemPromptMsg: string;
   endpoint: string;
+  client: ModelClientType;
   modelName: string;
   maxTokens: number;
-  token: string;
   content: string;
 }
 
