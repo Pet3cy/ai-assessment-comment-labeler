@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, spyOn } from "bun:test";
 import {
   getPromptOptions,
   getAILabelAssessmentValue,
@@ -230,6 +230,13 @@ describe("getRegexFromString", () => {
     expect(
       regex.test("### Well-form: Yes\n<!-- NO-COMMENT -->\nThis is a test."),
     ).toBe(true);
+  });
+
+  it("should not log to console", () => {
+    const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+    getRegexFromString("test", "g");
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
   });
 });
 
