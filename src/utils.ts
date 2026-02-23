@@ -45,6 +45,10 @@ export const writeActionSummary = ({
 export const getBaseFilename = (promptFile: string): string =>
   promptFile.replace(/\.prompt\.y.*ml$/, "");
 
+
+export const sanitizeLog = (input: string): string =>
+  JSON.stringify(input).slice(1, -1);
+
 export const getAILabelAssessmentValue = (
   promptFile: string,
   aiResponse: string,
@@ -58,6 +62,7 @@ export const getAILabelAssessmentValue = (
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
+      console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
