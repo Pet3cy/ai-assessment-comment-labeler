@@ -192,6 +192,129 @@ describe("api", () => {
         error,
       );
     });
+
+    it("should return false when response data is invalid despite 201 status", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      // Mock response with 201 status but undefined data
+      const createCommentMock = mock(() =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Promise.resolve({ status: 201, data: undefined } as any),
+      );
+      const octokit = {
+        rest: {
+          issues: {
+            createComment: createCommentMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await createIssueComment({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "test",
+      });
+
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error creating issue comment:",
+        expect.any(Error),
+      );
+
+      console.error = originalConsoleError;
+    });
+
+    it("should return false and log error for 403 Forbidden", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      const createCommentMock = mock(() => Promise.resolve({ status: 403 }));
+      const octokit = {
+        rest: {
+          issues: {
+            createComment: createCommentMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await createIssueComment({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "test",
+      });
+
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 403);
+
+      console.error = originalConsoleError;
+    });
+
+    it("should return false and log error for 422 Unprocessable Entity", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      const createCommentMock = mock(() => Promise.resolve({ status: 422 }));
+      const octokit = {
+        rest: {
+          issues: {
+            createComment: createCommentMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await createIssueComment({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "",
+      });
+
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 422);
+
+      console.error = originalConsoleError;
+    });
+
+    it("should handle timeout error", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      const error = new Error("Request timed out");
+      const createCommentMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            createComment: createCommentMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await createIssueComment({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "test",
+      });
+
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error creating issue comment:",
+        error,
+      );
+
+      console.error = originalConsoleError;
+    });
   });
 
   describe("getIssueLabels", () => {
