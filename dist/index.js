@@ -31083,7 +31083,6 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${matchedAssessment}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
@@ -31234,8 +31233,8 @@ var main = async () => {
   const endpoint = import_core2.getInput("endpoint");
   const modelName = import_core2.getInput("model");
   const maxTokens = import_core2.getInput("max_tokens") ? parseInt(import_core2.getInput("max_tokens"), 10) : undefined;
-  const suppressLabelsInput = import_core2.getInput("suppress_labels") == "true";
-  const suppressCommentsInput = import_core2.getInput("suppress_comments") == "true";
+  const suppressLabelsInput = import_core2.getBooleanInput("suppress_labels");
+  const suppressCommentsInput = import_core2.getBooleanInput("suppress_comments");
   let issueLabels = import_github.context?.payload?.issue?.labels ?? [];
   if (!issueLabels || issueLabels.length === 0) {
     const labels = await getIssueLabels({
@@ -31339,3 +31338,6 @@ var main = async () => {
 if (true) {
   main();
 }
+export {
+  main
+};
