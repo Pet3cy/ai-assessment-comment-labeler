@@ -18,6 +18,7 @@ describe("api", () => {
 
   describe("addIssueLabels", () => {
     it("should add multiple labels to an issue", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -36,9 +37,11 @@ describe("api", () => {
         issue_number: issueNumber,
         labels,
       });
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it("should add a single label to an issue", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -57,6 +60,7 @@ describe("api", () => {
         issue_number: issueNumber,
         labels,
       });
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it("should handle error when adding labels", async () => {
@@ -85,28 +89,8 @@ describe("api", () => {
       );
     });
 
-    it("should add a single label to an issue", async () => {
-      const addLabelsMock = mock(() => Promise.resolve({}));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      const labels = ["bug"];
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
-
-      expect(addLabelsMock).toHaveBeenCalledWith({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels,
-      });
-    });
-
     it("should handle empty labels array", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -125,27 +109,7 @@ describe("api", () => {
         issue_number: issueNumber,
         labels,
       });
-    });
-
-    it("should handle empty labels array", async () => {
-      const addLabelsMock = mock(() => Promise.resolve({}));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      const labels: string[] = [];
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
-
-      expect(addLabelsMock).toHaveBeenCalledWith({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels: [],
-      });
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
   });
 
