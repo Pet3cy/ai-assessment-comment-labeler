@@ -1,5 +1,5 @@
 import { context, getOctokit } from "@actions/github";
-import { getInput, setOutput } from "@actions/core";
+import { getInput, setOutput, info } from "@actions/core";
 import { aiInference } from "./ai";
 import {
   getPromptFilesFromLabels,
@@ -17,7 +17,7 @@ import {
 } from "./api";
 import type { Label } from "./types";
 
-const main = async () => {
+export const main = async () => {
   // Required inputs
   const token = getInput("token") || process.env.GITHUB_TOKEN;
   const owner = getInput("owner") || context?.repo?.owner;
@@ -84,7 +84,7 @@ const main = async () => {
     if (labels) {
       issueLabels = labels.map((name) => ({ name })) as Label[];
     } else {
-      console.log("No labels found on the issue.");
+      info("No labels found on the issue.");
       return;
     }
   }
@@ -94,14 +94,12 @@ const main = async () => {
     (label) => label?.name == aiReviewLabel,
   );
   if (!requireAiReview) {
-    console.log(
-      `No AI review required. Issue does not have label: ${aiReviewLabel}`,
-    );
+    info(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
     return;
   }
 
   // Remove the aiReviewLabel trigger label
-  console.log(`Removing label: ${aiReviewLabel}`);
+  info(`Removing label: ${aiReviewLabel}`);
   await removeIssueLabel({
     octokit,
     owner,
@@ -117,7 +115,7 @@ const main = async () => {
   });
 
   if (promptFiles.length === 0) {
-    console.log(
+    info(
       "No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " +
         "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.",
     );
@@ -127,7 +125,7 @@ const main = async () => {
   const labelsToAdd: string[] = [];
   const outPutAssessments = [];
   for (const promptFile of promptFiles) {
-    console.log(`Using prompt file: ${promptFile}`);
+    info(`Using prompt file: ${promptFile}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
 
     const aiResponse = await aiInference({
@@ -143,7 +141,7 @@ const main = async () => {
         suppressCommentsInput ||
         (noCommentRegex && noCommentRegex.test(aiResponse))
       ) {
-        console.log("No comment creation as per AI response directive.");
+        info("No comment creation as per AI response directive.");
       } else {
         const commentCreated = await createIssueComment({
           octokit,
@@ -176,7 +174,7 @@ const main = async () => {
         response: aiResponse,
       });
     } else {
-      console.log("No response received from AI.");
+      info("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
       labelsToAdd.push(`ai:${fileName}:unable-to-process`);
     }
@@ -185,12 +183,12 @@ const main = async () => {
   setOutput("ai_assessments", JSON.stringify(outPutAssessments));
 
   if (suppressLabelsInput) {
-    console.log("Label suppression is enabled. No labels will be added.");
+    info("Label suppression is enabled. No labels will be added.");
     return;
   }
 
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
+    info(`Adding labels: ${labelsToAdd.join(", ")}`);
     await addIssueLabels({
       octokit,
       owner,
@@ -199,7 +197,7 @@ const main = async () => {
       labels: labelsToAdd,
     });
   } else {
-    console.log("No labels to add found.");
+    info("No labels to add found.");
   }
 };
 

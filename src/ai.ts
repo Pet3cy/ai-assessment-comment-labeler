@@ -12,10 +12,10 @@ export const aiInference: AiInferenceFn = async ({
   content,
 }) => {
   try {
-    console.log("AI configuration:");
-    console.log(`Endpoint: ${endpoint}`);
-    console.log(`Model: ${modelName}`);
-    console.log(`Max Tokens: ${maxTokens}`);
+    core.info("AI configuration:");
+    core.info(`Endpoint: ${endpoint}`);
+    core.info(`Model: ${modelName}`);
+    core.info(`Max Tokens: ${maxTokens}`);
     const client = ModelClient(endpoint, new AzureKeyCredential(token));
 
     const response = await client.path("/chat/completions").post({
