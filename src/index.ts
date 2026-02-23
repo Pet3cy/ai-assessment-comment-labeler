@@ -69,8 +69,8 @@ const main = async () => {
     : undefined;
 
   // Optional suppressing inputs
-  const suppressLabelsInput = getInput("suppress_labels") == "true";
-  const suppressCommentsInput = getInput("suppress_comments") == "true";
+  const suppressLabelsInput = getInput("suppress_labels") === "true";
+  const suppressCommentsInput = getInput("suppress_comments") === "true";
 
   // Get Labels from the issue
   let issueLabels: Label[] = context?.payload?.issue?.labels ?? [];
@@ -91,7 +91,7 @@ const main = async () => {
 
   // Check if the issue requires AI review based on the aiReviewLabel
   const requireAiReview = issueLabels.some(
-    (label) => label?.name == aiReviewLabel,
+    (label) => label?.name === aiReviewLabel,
   );
   if (!requireAiReview) {
     console.log(
