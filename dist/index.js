@@ -31083,7 +31083,6 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${matchedAssessment}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
@@ -31272,9 +31271,7 @@ var main = async () => {
     console.log("No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " + "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.");
     return;
   }
-  const labelsToAdd = [];
-  const outPutAssessments = [];
-  for (const promptFile of promptFiles) {
+  const processPrompt = async (promptFile) => {
     console.log(`Using prompt file: ${promptFile}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
     const aiResponse = await aiInference({
@@ -31301,23 +31298,31 @@ var main = async () => {
         }
       }
       const assessmentLabel = getAILabelAssessmentValue(promptFile, aiResponse, aiAssessmentRegex);
-      labelsToAdd.push(assessmentLabel);
       writeActionSummary({
         promptFile,
         aiResponse,
         assessmentLabel
       });
-      outPutAssessments.push({
-        prompt: promptFile,
-        assessmentLabel,
-        response: aiResponse
-      });
+      return {
+        label: assessmentLabel,
+        assessment: {
+          prompt: promptFile,
+          assessmentLabel,
+          response: aiResponse
+        }
+      };
     } else {
       console.log("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
-      labelsToAdd.push(`ai:${fileName}:unable-to-process`);
+      return {
+        label: `ai:${fileName}:unable-to-process`,
+        assessment: null
+      };
     }
-  }
+  };
+  const results = await Promise.all(promptFiles.map(processPrompt));
+  const labelsToAdd = results.map((r) => r.label);
+  const outPutAssessments = results.map((r) => r.assessment).filter((a) => a !== null);
   import_core2.setOutput("ai_assessments", JSON.stringify(outPutAssessments));
   if (suppressLabelsInput) {
     console.log("Label suppression is enabled. No labels will be added.");
