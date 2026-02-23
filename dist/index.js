@@ -28332,10 +28332,10 @@ var aiInference = async ({
   content
 }) => {
   try {
-    console.log("AI configuration:");
-    console.log(`Endpoint: ${endpoint}`);
-    console.log(`Model: ${modelName}`);
-    console.log(`Max Tokens: ${maxTokens}`);
+    core.info("AI configuration:");
+    core.info(`Endpoint: ${endpoint}`);
+    core.info(`Model: ${modelName}`);
+    core.info(`Max Tokens: ${maxTokens}`);
     const client = esm_default(endpoint, new AzureKeyCredential(token));
     const response = await client.path("/chat/completions").post({
       body: {
@@ -31083,7 +31083,6 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${matchedAssessment}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
@@ -31135,6 +31134,7 @@ var getPromptOptions = (promptFile, promptsDirectory) => {
 };
 
 // src/api.ts
+var core3 = __toESM(require_core(), 1);
 var createIssueComment = async ({
   octokit,
   owner,
@@ -31150,14 +31150,14 @@ var createIssueComment = async ({
       body
     });
     if (response.status === 201) {
-      console.log("Comment created successfully:", response.data.html_url);
+      core3.info(`Comment created successfully: ${response.data.html_url}`);
       return true;
     } else {
-      console.error("Failed to create comment:", response.status);
+      core3.error(`Failed to create comment: ${response.status}`);
       return false;
     }
-  } catch (error) {
-    console.error("Error creating issue comment:", error);
+  } catch (error2) {
+    core3.error(`Error creating issue comment: ${error2}`);
     return false;
   }
 };
@@ -31174,8 +31174,8 @@ var getIssueLabels = async ({
       issue_number
     });
     return response.data.map((label) => label.name);
-  } catch (error) {
-    console.error("Error listing labels on issue:", error);
+  } catch (error2) {
+    core3.error(`Error listing labels on issue: ${error2}`);
   }
 };
 var addIssueLabels = async ({
@@ -31187,8 +31187,8 @@ var addIssueLabels = async ({
 }) => {
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
-  } catch (error) {
-    console.error("Error adding labels to issue:", error);
+  } catch (error2) {
+    core3.error(`Error adding labels to issue: ${error2}`);
   }
 };
 var removeIssueLabel = async ({
@@ -31205,9 +31205,9 @@ var removeIssueLabel = async ({
       issue_number,
       name: label
     });
-    console.log(`Label "${label}" removed from issue #${issue_number}`);
-  } catch (error) {
-    console.error("Error removing labels from issue:", error);
+    core3.info(`Label "${label}" removed from issue #${issue_number}`);
+  } catch (error2) {
+    core3.error(`Error removing labels from issue: ${error2}`);
   }
 };
 
@@ -31247,16 +31247,16 @@ var main = async () => {
     if (labels) {
       issueLabels = labels.map((name) => ({ name }));
     } else {
-      console.log("No labels found on the issue.");
+      import_core2.info("No labels found on the issue.");
       return;
     }
   }
   const requireAiReview = issueLabels.some((label) => label?.name == aiReviewLabel);
   if (!requireAiReview) {
-    console.log(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
+    import_core2.info(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
     return;
   }
-  console.log(`Removing label: ${aiReviewLabel}`);
+  import_core2.info(`Removing label: ${aiReviewLabel}`);
   await removeIssueLabel({
     octokit,
     owner,
@@ -31269,13 +31269,13 @@ var main = async () => {
     labelsToPromptsMapping
   });
   if (promptFiles.length === 0) {
-    console.log("No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " + "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.");
+    import_core2.info("No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " + "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.");
     return;
   }
   const labelsToAdd = [];
   const outPutAssessments = [];
   for (const promptFile of promptFiles) {
-    console.log(`Using prompt file: ${promptFile}`);
+    import_core2.info(`Using prompt file: ${promptFile}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
     const aiResponse = await aiInference({
       token,
@@ -31287,7 +31287,7 @@ var main = async () => {
     });
     if (aiResponse) {
       if (suppressCommentsInput || noCommentRegex && noCommentRegex.test(aiResponse)) {
-        console.log("No comment creation as per AI response directive.");
+        import_core2.info("No comment creation as per AI response directive.");
       } else {
         const commentCreated = await createIssueComment({
           octokit,
@@ -31313,18 +31313,18 @@ var main = async () => {
         response: aiResponse
       });
     } else {
-      console.log("No response received from AI.");
+      import_core2.info("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
       labelsToAdd.push(`ai:${fileName}:unable-to-process`);
     }
   }
   import_core2.setOutput("ai_assessments", JSON.stringify(outPutAssessments));
   if (suppressLabelsInput) {
-    console.log("Label suppression is enabled. No labels will be added.");
+    import_core2.info("Label suppression is enabled. No labels will be added.");
     return;
   }
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
+    import_core2.info(`Adding labels: ${labelsToAdd.join(", ")}`);
     await addIssueLabels({
       octokit,
       owner,
@@ -31333,9 +31333,12 @@ var main = async () => {
       labels: labelsToAdd
     });
   } else {
-    console.log("No labels to add found.");
+    import_core2.info("No labels to add found.");
   }
 };
 if (true) {
   main();
 }
+export {
+  main
+};
