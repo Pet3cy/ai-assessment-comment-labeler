@@ -13,7 +13,7 @@ describe("api", () => {
   const issueNumber = 123;
 
   describe("addIssueLabels", () => {
-    it("should add labels to an issue", async () => {
+    it("should add multiple labels to an issue", async () => {
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -24,6 +24,27 @@ describe("api", () => {
       } as unknown as InstanceType<typeof GitHub>;
 
       const labels = ["bug", "test"];
+      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
+
+      expect(addLabelsMock).toHaveBeenCalledWith({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels,
+      });
+    });
+
+    it("should add a single label to an issue", async () => {
+      const addLabelsMock = mock(() => Promise.resolve({}));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const labels = ["bug"];
       await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
 
       expect(addLabelsMock).toHaveBeenCalledWith({
@@ -63,6 +84,27 @@ describe("api", () => {
       );
 
       console.error = originalConsoleError;
+    });
+
+    it("should handle empty labels array", async () => {
+      const addLabelsMock = mock(() => Promise.resolve({}));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const labels: string[] = [];
+      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
+
+      expect(addLabelsMock).toHaveBeenCalledWith({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        labels: [],
+      });
     });
   });
 
