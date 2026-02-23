@@ -122,6 +122,67 @@ describe("getPromptFilesFromLabels", () => {
       }),
     ).toEqual(["bug-review.prompt.yml"]);
   });
+
+  it("should return an empty array if labelsToPromptsMapping is empty", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = "";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
+
+  it("should return an empty array if no labels match", () => {
+    const issueLabels = [{ name: "feature" }];
+    const labelsToPromptsMapping = "bug,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
+
+  it("should return multiple prompt files if multiple labels match", () => {
+    const issueLabels = [{ name: "bug" }, { name: "security" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|security,security-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml", "security-review.prompt.yml"]);
+  });
+
+  it("should handle whitespace in labelsToPromptsMapping", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = " bug , bug-review.prompt.yml ";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should return an empty array if issueLabels is empty", () => {
+    const issueLabels: { name: string }[] = [];
+    const labelsToPromptsMapping = "bug,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("getRegexFromString", () => {
