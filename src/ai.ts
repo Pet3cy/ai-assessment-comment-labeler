@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { isUnexpected } from "@azure-rest/ai-inference";
 import type { AiInferenceFn } from "./types";
 
+/* Injected client for performance optimization (reuse connection) */
 export const aiInference: AiInferenceFn = async ({
   systemPromptMsg,
   endpoint,

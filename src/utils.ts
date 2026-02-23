@@ -44,7 +44,6 @@ export const writeActionSummary = ({
 export const getBaseFilename = (promptFile: string): string =>
   promptFile.replace(/\.prompt\.y.*ml$/, "");
 
-
 export const sanitizeLog = (input: string): string =>
   JSON.stringify(input).slice(1, -1);
 
