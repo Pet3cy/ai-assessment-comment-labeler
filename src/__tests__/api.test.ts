@@ -111,6 +111,120 @@ describe("api", () => {
       });
       expect(consoleSpy).not.toHaveBeenCalled();
     });
+
+    describe("error handling", () => {
+    it("should handle 404 Not Found error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      const error = new Error("Not Found");
+      // @ts-ignore
+      error.status = 404;
+      const addLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error adding labels to issue:",
+        error,
+      );
+    });
+
+    it("should handle 403 Forbidden error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      const error = new Error("Forbidden");
+      // @ts-ignore
+      error.status = 403;
+      const addLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error adding labels to issue:",
+        error,
+      );
+    });
+
+    it("should handle 422 Unprocessable Entity error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      const error = new Error("Unprocessable Entity");
+      // @ts-ignore
+      error.status = 422;
+      const addLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error adding labels to issue:",
+        error,
+      );
+    });
+
+    it("should handle 500 Server Error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      const error = new Error("Server Error");
+      // @ts-ignore
+      error.status = 500;
+      const addLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            addLabels: addLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error adding labels to issue:",
+        error,
+      );
+    });
+    });
   });
 
   describe("createIssueComment", () => {
