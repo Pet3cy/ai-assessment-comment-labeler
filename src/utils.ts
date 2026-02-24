@@ -14,15 +14,13 @@ export const getRegexFromString = (
   regexString: string,
   regexFlags: string,
 ): RegExp => {
-  let regex;
   try {
-    regex = new RegExp(regexString, regexFlags);
+    return new RegExp(regexString, regexFlags);
   } catch (error) {
     throw new Error(
       `Invalid regex pattern or flags provided: pattern="${regexString}", flags="${regexFlags}". Error: ${error}`,
     );
   }
-  return regex;
 };
 
 export const writeActionSummary = ({
