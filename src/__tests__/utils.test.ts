@@ -1,11 +1,42 @@
-import { describe, it, expect, spyOn } from "bun:test";
+import {
+  describe,
+  it,
+  expect,
+  spyOn,
+  mock,
+  beforeEach,
+  type Mock,
+} from "bun:test";
 import {
   getPromptOptions,
   getAILabelAssessmentValue,
   getPromptFilesFromLabels,
   getRegexFromString,
   getBaseFilename,
+  writeActionSummary,
 } from "../utils";
+import * as core from "@actions/core";
+
+// Mock @actions/core
+mock.module("@actions/core", () => {
+  const summaryMethods = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addHeading: mock(function (this: any) {
+      return this;
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addCodeBlock: mock(function (this: any) {
+      return this;
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    write: mock(function (this: any) {
+      return this;
+    }),
+  };
+  return {
+    summary: summaryMethods,
+  };
+});
 
 describe("getPromptOptions", () => {
   it("should return the system content field from test-intake.yml", () => {
@@ -263,5 +294,45 @@ describe("getBaseFilename", () => {
   it("should return the original filename if no prompt extension", () => {
     const result = getBaseFilename("test.txt");
     expect(result).toEqual("test.txt");
+  });
+});
+
+describe("writeActionSummary", () => {
+  beforeEach(() => {
+    // Clear mocks before each test
+    // Note: Since we are mocking the module, we need to access the mocked methods
+    // via the imported module or the mocked object if exported.
+    // In this case, we access via core.summary which refers to the mocked object.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (core.summary.addHeading as unknown as Mock<any>).mockClear();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (core.summary.addCodeBlock as unknown as Mock<any>).mockClear();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (core.summary.write as unknown as Mock<any>).mockClear();
+  });
+
+  it("should call summary methods with correct arguments", () => {
+    const params = {
+      promptFile: "test-prompt.yml",
+      aiResponse: "This is a test response",
+      assessmentLabel: "ai:test:aligned",
+    };
+
+    writeActionSummary(params);
+
+    expect(core.summary.addHeading).toHaveBeenCalledTimes(4);
+    expect(core.summary.addCodeBlock).toHaveBeenCalledTimes(3);
+
+    // Check specific calls
+    expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment Result");
+    expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment");
+    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+      params.assessmentLabel,
+    );
+    expect(core.summary.addHeading).toHaveBeenCalledWith("Prompt File");
+    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.promptFile);
+    expect(core.summary.addHeading).toHaveBeenCalledWith("Details");
+    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.aiResponse);
+    expect(core.summary.write).toHaveBeenCalled();
   });
 });
