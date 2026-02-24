@@ -158,4 +158,22 @@ describe("main", () => {
 
     expect(mockCreateComment).not.toHaveBeenCalled();
   });
+
+  it("should NOT proceed if ai_review_label does not match any issue label", async () => {
+    // Return "feature" label. "bug" != "feature"
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "feature" }] });
+
+    await main();
+
+    expect(mockRemoveLabel).not.toHaveBeenCalled();
+  });
+
+  it("should proceed if ai_review_label matches an issue label", async () => {
+    // Return "bug" label. "bug" === "bug"
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+
+    await main();
+
+    expect(mockRemoveLabel).toHaveBeenCalled();
+  });
 });
