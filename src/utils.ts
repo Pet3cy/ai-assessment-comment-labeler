@@ -8,7 +8,7 @@ import type {
   WriteActionSummaryParams,
   YamlData,
 } from "./types";
-import { DEFAULT_MAX_TOKENS } from "./constants";
+import { DEFAULT_MAX_TOKENS, MAX_LABEL_LENGTH } from "./constants";
 
 export const getRegexFromString = (
   regexString: string,
@@ -66,8 +66,8 @@ export const getAILabelAssessmentValue = (
       }
     }
   }
-  // Max 50 characters for labels
-  return assessment.slice(0, 50);
+
+  return assessment.slice(0, MAX_LABEL_LENGTH);
 };
 
 export const getPromptFilesFromLabels = ({
