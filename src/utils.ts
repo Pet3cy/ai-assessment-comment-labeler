@@ -62,7 +62,7 @@ export const getAILabelAssessmentValue = (
       const matchedAssessment = match[1].trim().toLowerCase();
       console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
-        assessment = `ai:${fileName}:${matchedAssessment}`;
+        assessment = `ai:${fileName}:${sanitizeLog(matchedAssessment)}`;
       }
     }
   }

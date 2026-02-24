@@ -265,3 +265,20 @@ describe("getBaseFilename", () => {
     expect(result).toEqual("test.txt");
   });
 });
+
+describe("getAILabelAssessmentValue Security", () => {
+  const aiAssessmentRegex = new RegExp("^###.*assessment:\\s*(.+)$", "i");
+
+  it("should sanitize malicious input containing ANSI escape codes", () => {
+    const maliciousResponse = "### Assessment: Malicious\u001b[31mCode";
+    const result = getAILabelAssessmentValue(
+        "test.prompt.yml",
+        maliciousResponse,
+        aiAssessmentRegex,
+    );
+    // Expect backslash to be escaped, so it is visible string "\u001b" not control char
+    // The control char \x1b becomes string "\u001b" via JSON.stringify
+    expect(result).not.toContain("\u001b[31m");
+    expect(result).toContain("\\u001b");
+  });
+});
