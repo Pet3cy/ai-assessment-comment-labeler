@@ -350,36 +350,29 @@ describe("api", () => {
     });
 
     it("should handle malformed response", async () => {
-      const consoleSpy = mock(() => {});
-      const originalConsoleError = console.error;
-      console.error = consoleSpy as unknown as typeof console.error;
-
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const listLabelsMock = mock(() => Promise.resolve({} as any));
-        const octokit = {
-          rest: {
-            issues: {
-              listLabelsOnIssue: listLabelsMock,
-            },
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const listLabelsMock = mock(() => Promise.resolve({} as any));
+      const octokit = {
+        rest: {
+          issues: {
+            listLabelsOnIssue: listLabelsMock,
           },
-        } as unknown as InstanceType<typeof GitHub>;
+        },
+      } as unknown as InstanceType<typeof GitHub>;
 
-        const result = await getIssueLabels({
-          octokit,
-          owner,
-          repo,
-          issueNumber,
-        });
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+      });
 
-        expect(result).toBeUndefined();
-        expect(consoleSpy).toHaveBeenCalledWith(
-          "Error listing labels on issue:",
-          expect.any(TypeError),
-        );
-      } finally {
-        console.error = originalConsoleError;
-      }
+      expect(result).toBeUndefined();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error listing labels on issue:",
+        expect.any(TypeError),
+      );
     });
 
     it("should return labels for an issue", async () => {
@@ -426,6 +419,62 @@ describe("api", () => {
         owner,
         repo,
         issueNumber,
+      });
+
+      expect(result).toBeUndefined();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error listing labels on issue:",
+        error,
+      );
+    });
+
+    it("should handle 404 Not Found error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      // Simulate Octokit error structure
+      const error = { status: 404, message: "Not Found" };
+      const listLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            listLabelsOnIssue: listLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "test",
+      });
+
+      expect(result).toBeUndefined();
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error listing labels on issue:",
+        error,
+      );
+    });
+
+    it("should handle 500 Internal Server Error", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+      // Simulate Octokit error structure
+      const error = { status: 500, message: "Internal Server Error" };
+      const listLabelsMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            listLabelsOnIssue: listLabelsMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        body: "test",
       });
 
       expect(result).toBeUndefined();
