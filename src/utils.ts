@@ -80,9 +80,12 @@ export const getPromptFilesFromLabels = ({
   const issueLabelNames = new Set(issueLabels.map((l) => l?.name));
 
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
-    const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    if (issueLabelNames.has(labelPromptArr[0])) {
-      promptFiles.push(labelPromptArr[1]);
+    const parts = labelPromptMapping.split(",");
+    if (parts.length >= 2) {
+      const labelName = parts[0].trim();
+      if (issueLabelNames.has(labelName)) {
+        promptFiles.push(parts[1].trim());
+      }
     }
   }
 
