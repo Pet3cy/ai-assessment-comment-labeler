@@ -31054,6 +31054,7 @@ var js_yaml_default = jsYaml;
 
 // src/constants.ts
 var DEFAULT_MAX_TOKENS = 200;
+var MAX_LABEL_LENGTH = 50;
 
 // src/utils.ts
 var getRegexFromString = (regexString, regexFlags) => {
@@ -31089,7 +31090,7 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
       }
     }
   }
-  return assessment.slice(0, 50);
+  return assessment.slice(0, MAX_LABEL_LENGTH);
 };
 var getPromptFilesFromLabels = ({
   issueLabels,
