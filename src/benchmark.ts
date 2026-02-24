@@ -7,6 +7,7 @@ const token = "fake-token";
 function measureCreation() {
   const start = performance.now();
   for (let i = 0; i < 10000; i++) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const client = ModelClient(endpoint, new AzureKeyCredential(token));
   }
   const end = performance.now();

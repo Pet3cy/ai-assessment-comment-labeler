@@ -5,9 +5,18 @@ import * as core from "@actions/core";
 // Mock @actions/core
 mock.module("@actions/core", () => {
   const summaryMethods = {
-    addHeading: mock(function(this: any) { return this; }),
-    addCodeBlock: mock(function(this: any) { return this; }),
-    write: mock(function(this: any) { return this; }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addHeading: mock(function (this: any) {
+      return this;
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    addCodeBlock: mock(function (this: any) {
+      return this;
+    }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    write: mock(function (this: any) {
+      return this;
+    }),
   };
   return {
     summary: summaryMethods,
@@ -20,8 +29,11 @@ describe("writeActionSummary", () => {
     // Note: Since we are mocking the module, we need to access the mocked methods
     // via the imported module or the mocked object if exported.
     // In this case, we access via core.summary which refers to the mocked object.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (core.summary.addHeading as any).mockClear();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (core.summary.addCodeBlock as any).mockClear();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (core.summary.write as any).mockClear();
   });
 
@@ -40,7 +52,9 @@ describe("writeActionSummary", () => {
     // Check specific calls
     expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment Result");
     expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment");
-    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.assessmentLabel);
+    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+      params.assessmentLabel,
+    );
     expect(core.summary.addHeading).toHaveBeenCalledWith("Prompt File");
     expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.promptFile);
     expect(core.summary.addHeading).toHaveBeenCalledWith("Details");
