@@ -31100,7 +31100,7 @@ var getPromptFilesFromLabels = ({
   const issueLabelNames = new Set(issueLabels.map((l) => l?.name));
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    if (issueLabelNames.has(labelPromptArr[0])) {
+    if (labelPromptArr.length >= 2 && issueLabelNames.has(labelPromptArr[0])) {
       promptFiles.push(labelPromptArr[1]);
     }
   }

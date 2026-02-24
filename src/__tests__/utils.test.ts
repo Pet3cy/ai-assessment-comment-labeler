@@ -192,6 +192,18 @@ describe("getPromptFilesFromLabels", () => {
       }),
     ).toEqual([]);
   });
+
+  it("should handle malformed labelsToPromptsMapping gracefully", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = "bug|security,security-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("getRegexFromString", () => {
