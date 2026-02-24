@@ -31248,16 +31248,16 @@ var main = async () => {
     if (labels) {
       issueLabels = labels.map((name) => ({ name }));
     } else {
-      console.log("No labels found on the issue.");
+      import_core2.info("No labels found on the issue.");
       return;
     }
   }
   const requireAiReview = issueLabels.some((label) => label?.name === aiReviewLabel);
   if (!requireAiReview) {
-    console.log(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
+    import_core2.info(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
     return;
   }
-  console.log(`Removing label: ${aiReviewLabel}`);
+  import_core2.info(`Removing label: ${aiReviewLabel}`);
   await removeIssueLabel({
     octokit,
     owner,
@@ -31270,11 +31270,11 @@ var main = async () => {
     labelsToPromptsMapping
   });
   if (promptFiles.length === 0) {
-    console.log("No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " + "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.");
+    import_core2.info("No matching prompt files found. No issue labels matched the configured label-to-prompt mapping. " + "To run an AI assessment, add a label that corresponds to a prompt file configured in your workflow.");
     return;
   }
   const processPrompt = async (promptFile) => {
-    console.log(`Using prompt file: ${promptFile}`);
+    import_core2.info(`Using prompt file: ${promptFile}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
     const aiResponse = await aiInference({
       client,
@@ -31286,7 +31286,7 @@ var main = async () => {
     });
     if (aiResponse) {
       if (suppressCommentsInput || noCommentRegex && noCommentRegex.test(aiResponse)) {
-        console.log("No comment creation as per AI response directive.");
+        import_core2.info("No comment creation as per AI response directive.");
       } else {
         const commentCreated = await createIssueComment({
           octokit,
@@ -31314,7 +31314,7 @@ var main = async () => {
         }
       };
     } else {
-      console.log("No response received from AI.");
+      import_core2.warning("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
       return {
         label: `ai:${fileName}:unable-to-process`,
@@ -31327,11 +31327,11 @@ var main = async () => {
   const outPutAssessments = results.map((r) => r.assessment).filter((a) => a !== null);
   import_core2.setOutput("ai_assessments", JSON.stringify(outPutAssessments));
   if (suppressLabelsInput) {
-    console.log("Label suppression is enabled. No labels will be added.");
+    import_core2.info("Label suppression is enabled. No labels will be added.");
     return;
   }
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
+    import_core2.info(`Adding labels: ${labelsToAdd.join(", ")}`);
     await addIssueLabels({
       octokit,
       owner,
@@ -31340,7 +31340,7 @@ var main = async () => {
       labels: labelsToAdd
     });
   } else {
-    console.log("No labels to add found.");
+    import_core2.info("No labels to add found.");
   }
 };
 if (true) {

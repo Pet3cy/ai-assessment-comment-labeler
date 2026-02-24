@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { writeActionSummary } from "../utils";
 import * as core from "@actions/core";
@@ -5,9 +6,15 @@ import * as core from "@actions/core";
 // Mock @actions/core
 mock.module("@actions/core", () => {
   const summaryMethods = {
-    addHeading: mock(function(this: any) { return this; }),
-    addCodeBlock: mock(function(this: any) { return this; }),
-    write: mock(function(this: any) { return this; }),
+    addHeading: mock(function (this: any) {
+      return this;
+    }),
+    addCodeBlock: mock(function (this: any) {
+      return this;
+    }),
+    write: mock(function (this: any) {
+      return this;
+    }),
   };
   return {
     summary: summaryMethods,
@@ -40,7 +47,9 @@ describe("writeActionSummary", () => {
     // Check specific calls
     expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment Result");
     expect(core.summary.addHeading).toHaveBeenCalledWith("Assessment");
-    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.assessmentLabel);
+    expect(core.summary.addCodeBlock).toHaveBeenCalledWith(
+      params.assessmentLabel,
+    );
     expect(core.summary.addHeading).toHaveBeenCalledWith("Prompt File");
     expect(core.summary.addCodeBlock).toHaveBeenCalledWith(params.promptFile);
     expect(core.summary.addHeading).toHaveBeenCalledWith("Details");
