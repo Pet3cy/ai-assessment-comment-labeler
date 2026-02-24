@@ -2,7 +2,7 @@ import { describe, it, expect, spyOn, afterEach } from "bun:test";
 import { getAILabelAssessmentValue, sanitizeLog } from "../utils";
 
 describe("Log Injection Security", () => {
-  const consoleLogSpy = spyOn(console, 'log').mockImplementation(() => {});
+  const consoleLogSpy = spyOn(console, "log").mockImplementation(() => {});
 
   afterEach(() => {
     consoleLogSpy.mockClear();
@@ -20,13 +20,13 @@ describe("Log Injection Security", () => {
     });
 
     it("should handle mixed control characters", () => {
-        const input = "User\n\rInput";
-        expect(sanitizeLog(input)).toBe("User\\n\\rInput");
+      const input = "User\n\rInput";
+      expect(sanitizeLog(input)).toBe("User\\n\\rInput");
     });
 
     it("should escape quotes", () => {
-        const input = 'User "input"';
-        expect(sanitizeLog(input)).toBe('User \\"input\\"');
+      const input = 'User "input"';
+      expect(sanitizeLog(input)).toBe('User \\"input\\"');
     });
   });
 
@@ -38,7 +38,9 @@ describe("Log Injection Security", () => {
 
       // tab is matched by dot, so it is part of matched string.
       // sanitizeLog escapes \t to \t
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining("Assessment found: malicious\\tinput"));
+      expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Assessment found: malicious\\tinput"),
+      );
     });
   });
 });

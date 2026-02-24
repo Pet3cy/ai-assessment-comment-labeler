@@ -355,6 +355,7 @@ describe("api", () => {
       console.error = consoleSpy as unknown as typeof console.error;
 
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const listLabelsMock = mock(() => Promise.resolve({} as any));
         const octokit = {
           rest: {

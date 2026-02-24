@@ -1,7 +1,7 @@
 import ModelClient from "@azure-rest/ai-inference";
 import { AzureKeyCredential } from "@azure/core-auth";
 import { context, getOctokit } from "@actions/github";
-import { getInput, setOutput } from "@actions/core";
+import { getInput, setOutput, getBooleanInput } from "@actions/core";
 import { aiInference } from "./ai";
 import {
   getPromptFilesFromLabels,
@@ -19,7 +19,7 @@ import {
 } from "./api";
 import type { Label } from "./types";
 
-const main = async () => {
+export const main = async () => {
   // Required inputs
   const token = getInput("token") || process.env.GITHUB_TOKEN;
   const owner = getInput("owner") || context?.repo?.owner;
@@ -73,8 +73,8 @@ const main = async () => {
   const client = ModelClient(endpoint, new AzureKeyCredential(token));
 
   // Optional suppressing inputs
-  const suppressLabelsInput = getInput("suppress_labels") === "true";
-  const suppressCommentsInput = getInput("suppress_comments") === "true";
+  const suppressLabelsInput = getBooleanInput("suppress_labels");
+  const suppressCommentsInput = getBooleanInput("suppress_comments");
 
   // Get Labels from the issue
   let issueLabels: Label[] = context?.payload?.issue?.labels ?? [];

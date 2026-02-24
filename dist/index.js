@@ -31073,6 +31073,7 @@ var writeActionSummary = ({
   import_core.summary.addHeading("Assessment Result").addHeading("Assessment").addCodeBlock(assessmentLabel).addHeading("Prompt File").addCodeBlock(promptFile).addHeading("Details").addCodeBlock(aiResponse).write();
 };
 var getBaseFilename = (promptFile) => promptFile.replace(/\.prompt\.y.*ml$/, "");
+var sanitizeLog = (input) => JSON.stringify(input).slice(1, -1);
 var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
   const fileName = getBaseFilename(promptFile);
   const lines = aiResponse.split(`
@@ -31082,6 +31083,7 @@ var getAILabelAssessmentValue = (promptFile, aiResponse, assessmentRegex) => {
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
+      console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
@@ -31233,8 +31235,8 @@ var main = async () => {
   const modelName = import_core2.getInput("model");
   const maxTokens = import_core2.getInput("max_tokens") ? parseInt(import_core2.getInput("max_tokens"), 10) : undefined;
   const client = esm_default(endpoint, new AzureKeyCredential(token));
-  const suppressLabelsInput = import_core2.getInput("suppress_labels") == "true";
-  const suppressCommentsInput = import_core2.getInput("suppress_comments") == "true";
+  const suppressLabelsInput = import_core2.getBooleanInput("suppress_labels");
+  const suppressCommentsInput = import_core2.getBooleanInput("suppress_comments");
   let issueLabels = import_github.context?.payload?.issue?.labels ?? [];
   if (!issueLabels || issueLabels.length === 0) {
     const labels = await getIssueLabels({
@@ -31250,7 +31252,7 @@ var main = async () => {
       return;
     }
   }
-  const requireAiReview = issueLabels.some((label) => label?.name == aiReviewLabel);
+  const requireAiReview = issueLabels.some((label) => label?.name === aiReviewLabel);
   if (!requireAiReview) {
     console.log(`No AI review required. Issue does not have label: ${aiReviewLabel}`);
     return;
@@ -31344,3 +31346,6 @@ var main = async () => {
 if (true) {
   main();
 }
+export {
+  main
+};
