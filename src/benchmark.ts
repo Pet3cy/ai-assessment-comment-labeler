@@ -7,7 +7,7 @@ const token = "fake-token";
 function measureCreation() {
   const start = performance.now();
   for (let i = 0; i < 10000; i++) {
-    const client = ModelClient(endpoint, new AzureKeyCredential(token));
+    ModelClient(endpoint, new AzureKeyCredential(token)); // const client = ModelClient(endpoint, new AzureKeyCredential(token));
   }
   const end = performance.now();
   console.log(`Creation of 10000 clients took ${end - start}ms`);
