@@ -9,6 +9,7 @@ import {
   writeActionSummary,
   getPromptOptions,
   getRegexFromString,
+  sanitizeLog,
   getBaseFilename,
 } from "./utils";
 import {
@@ -99,13 +100,13 @@ export const main = async () => {
   );
   if (!requireAiReview) {
     console.log(
-      `No AI review required. Issue does not have label: ${aiReviewLabel}`,
+      `No AI review required. Issue does not have label: ${sanitizeLog(aiReviewLabel)}`,
     );
     return;
   }
 
   // Remove the aiReviewLabel trigger label
-  console.log(`Removing label: ${aiReviewLabel}`);
+  console.log(`Removing label: ${sanitizeLog(aiReviewLabel)}`);
   await removeIssueLabel({
     octokit,
     owner,
@@ -129,7 +130,7 @@ export const main = async () => {
   }
 
   const processPrompt = async (promptFile: string) => {
-    console.log(`Using prompt file: ${promptFile}`);
+    console.log(`Using prompt file: ${sanitizeLog(promptFile)}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
 
     const aiResponse = await aiInference({
@@ -204,7 +205,7 @@ export const main = async () => {
   }
 
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
+    console.log(`Adding labels: ${labelsToAdd.map(sanitizeLog).join(", ")}`);
     await addIssueLabels({
       octokit,
       owner,
