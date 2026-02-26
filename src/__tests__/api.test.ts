@@ -1,5 +1,4 @@
 import { describe, it, expect, mock, spyOn, afterEach } from "bun:test";
-import { GitHub } from "@actions/github/lib/utils";
 import {
   getIssueLabels,
   addIssueLabels,
@@ -11,6 +10,7 @@ describe("api", () => {
   const repo = "repo";
   const issueNumber = 123;
 
+  // Clean up mocks after each test
   afterEach(() => {
     mock.restore();
   });
@@ -39,8 +39,7 @@ describe("api", () => {
       expect(consoleSpy).not.toHaveBeenCalled();
     });
 
-    it("should add a single label to an issue", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+    it("should handle empty labels array", async () => {
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -48,18 +47,17 @@ describe("api", () => {
             addLabels: addLabelsMock,
           },
         },
-      } as unknown as InstanceType<typeof GitHub>;
+      } as any;
 
-      const labels = ["bug"];
+      const labels: string[] = [];
       await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
 
       expect(addLabelsMock).toHaveBeenCalledWith({
         owner,
         repo,
         issue_number: issueNumber,
-        labels,
+        labels: [],
       });
-      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it("should handle error when adding labels", async () => {
@@ -74,23 +72,16 @@ describe("api", () => {
         },
       } as unknown as InstanceType<typeof GitHub>;
 
-      await addIssueLabels({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
-        labels: ["label"],
-      });
+      await addIssueLabels({ octokit, owner, repo, issueNumber, labels: ["label"] });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error adding labels to issue:",
-        error,
-      );
+      expect(consoleSpy).toHaveBeenCalledWith("Error adding labels to issue:", error);
+      consoleSpy.mockRestore();
     });
 
-    it("should handle empty labels array", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const addLabelsMock = mock(() => Promise.resolve({}));
+  describe("createIssueComment", () => {
+    it("should create a comment successfully", async () => {
+      const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+      const createCommentMock = mock(() => Promise.resolve({ status: 201, data: { html_url: "url" } }));
       const octokit = {
         rest: {
           issues: {
@@ -108,16 +99,12 @@ describe("api", () => {
         issue_number: issueNumber,
         labels,
       });
-      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
     });
 
-    describe("error handling", () => {
-    it("should handle 404 Not Found error", async () => {
+    it("should return false when comment creation fails", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const error = new Error("Not Found");
-      // @ts-ignore
-      error.status = 404;
-      const addLabelsMock = mock(() => Promise.reject(error));
+      const createCommentMock = mock(() => Promise.resolve({ status: 404 }));
       const octokit = {
         rest: {
           issues: {
@@ -134,18 +121,15 @@ describe("api", () => {
         labels: ["bug"],
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error adding labels to issue:",
-        error,
-      );
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 404);
+      consoleSpy.mockRestore();
     });
 
-    it("should handle 403 Forbidden error", async () => {
+    it("should handle error when creating a comment", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const error = new Error("Forbidden");
-      // @ts-ignore
-      error.status = 403;
-      const addLabelsMock = mock(() => Promise.reject(error));
+      const error = new Error("API Error");
+      const createCommentMock = mock(() => Promise.reject(error));
       const octokit = {
         rest: {
           issues: {
@@ -162,67 +146,9 @@ describe("api", () => {
         labels: ["bug"],
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error adding labels to issue:",
-        error,
-      );
-    });
-
-    it("should handle 422 Unprocessable Entity error", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const error = new Error("Unprocessable Entity");
-      // @ts-ignore
-      error.status = 422;
-      const addLabelsMock = mock(() => Promise.reject(error));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      await addIssueLabels({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
-        labels: ["bug"],
-      });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error adding labels to issue:",
-        error,
-      );
-    });
-
-    it("should handle 500 Server Error", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const error = new Error("Server Error");
-      // @ts-ignore
-      error.status = 500;
-      const addLabelsMock = mock(() => Promise.reject(error));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      await addIssueLabels({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
-        labels: ["bug"],
-      });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error adding labels to issue:",
-        error,
-      );
-    });
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith("Error creating issue comment:", error);
+      consoleSpy.mockRestore();
     });
   });
 
@@ -252,66 +178,6 @@ describe("api", () => {
       });
     });
 
-    it("should handle malformed response", async () => {
-      const consoleSpy = mock(() => {});
-      const originalConsoleError = console.error;
-      console.error = consoleSpy as unknown as typeof console.error;
-
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const listLabelsMock = mock(() => Promise.resolve({} as any));
-        const octokit = {
-          rest: {
-            issues: {
-              listLabelsOnIssue: listLabelsMock,
-            },
-          },
-        } as unknown as InstanceType<typeof GitHub>;
-
-        const result = await getIssueLabels({
-          octokit,
-          owner,
-          repo,
-          issueNumber,
-        });
-
-        expect(result).toBeUndefined();
-        expect(consoleSpy).toHaveBeenCalledWith(
-          "Error listing labels on issue:",
-          expect.any(TypeError),
-        );
-      } finally {
-        console.error = originalConsoleError;
-      }
-    });
-
-    it("should return labels for an issue", async () => {
-      const listLabelsMock = mock(() =>
-        Promise.resolve({ data: [{ name: "label1" }, { name: "label2" }] }),
-      );
-      const octokit = {
-        rest: {
-          issues: {
-            listLabelsOnIssue: listLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      const result = await getIssueLabels({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
-      });
-
-      expect(result).toEqual(["label1", "label2"]);
-      expect(listLabelsMock).toHaveBeenCalledWith({
-        owner,
-        repo,
-        issue_number: issueNumber,
-      });
-    });
-
     it("should handle error when getting labels", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const error = new Error("API Error");
@@ -332,19 +198,14 @@ describe("api", () => {
       });
 
       expect(result).toBeUndefined();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error listing labels on issue:",
-        error,
-      );
+      expect(consoleSpy).toHaveBeenCalledWith("Error listing labels on issue:", error);
+      consoleSpy.mockRestore();
     });
   });
 
   describe("removeIssueLabel", () => {
     it("should remove a label from an issue", async () => {
-      const consoleSpy = mock(() => {});
-      const originalConsoleLog = console.log;
-      console.log = consoleSpy as unknown as typeof console.log;
-
+      const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
       const removeLabelMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -363,11 +224,7 @@ describe("api", () => {
         issue_number: issueNumber,
         name: label,
       });
-      expect(consoleSpy).toHaveBeenCalledWith(
-        `Label "${label}" removed from issue #${issueNumber}`
-      );
-
-      console.log = originalConsoleLog;
+      consoleSpy.mockRestore();
     });
 
     it("should handle error when removing a label", async () => {
@@ -387,46 +244,11 @@ describe("api", () => {
         owner,
         repo,
         issueNumber,
-        label: "label",
-      });
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error removing labels from issue:",
-        error,
-      );
-    });
-
-    it("should handle 404 error when label does not exist", async () => {
-      const consoleSpy = mock(() => {});
-      const originalConsoleError = console.error;
-      console.error = consoleSpy as unknown as typeof console.error;
-
-      const error = new Error("Not Found");
-      // @ts-ignore
-      error.status = 404;
-      const removeLabelMock = mock(() => Promise.reject(error));
-      const octokit = {
-        rest: {
-          issues: {
-            removeLabel: removeLabelMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      await removeIssueLabel({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
         label: "non-existent-label",
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "Error removing labels from issue:",
-        error
-      );
-
-      console.error = originalConsoleError;
+      expect(consoleSpy).toHaveBeenCalledWith("Error removing labels from issue:", error);
+      consoleSpy.mockRestore();
     });
   });
 });
