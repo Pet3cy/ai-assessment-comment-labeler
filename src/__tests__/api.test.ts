@@ -552,7 +552,10 @@ describe("api", () => {
 
   describe("removeIssueLabel", () => {
     it("should remove a label from an issue", async () => {
-      const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+      const consoleSpy = mock(() => {});
+      const originalConsoleLog = console.log;
+      console.log = consoleSpy as unknown as typeof console.log;
+
       const removeLabelMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -572,8 +575,10 @@ describe("api", () => {
         name: label,
       });
       expect(consoleSpy).toHaveBeenCalledWith(
-        `Label "${label}" removed from issue #${issueNumber}`,
+        `Label "${label}" removed from issue #${issueNumber}`
       );
+
+      console.log = originalConsoleLog;
     });
 
     it("should handle error when removing a label", async () => {
@@ -600,6 +605,39 @@ describe("api", () => {
         "Error removing labels from issue:",
         error,
       );
+    });
+
+    it("should handle 404 error when label does not exist", async () => {
+      const consoleSpy = mock(() => {});
+      const originalConsoleError = console.error;
+      console.error = consoleSpy as unknown as typeof console.error;
+
+      const error = new Error("Not Found");
+      // @ts-ignore
+      error.status = 404;
+      const removeLabelMock = mock(() => Promise.reject(error));
+      const octokit = {
+        rest: {
+          issues: {
+            removeLabel: removeLabelMock,
+          },
+        },
+      } as unknown as InstanceType<typeof GitHub>;
+
+      await removeIssueLabel({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        label: "non-existent-label",
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error removing labels from issue:",
+        error
+      );
+
+      console.error = originalConsoleError;
     });
   });
 });
