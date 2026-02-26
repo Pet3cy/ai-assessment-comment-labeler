@@ -8,22 +8,19 @@ import type {
   WriteActionSummaryParams,
   YamlData,
 } from "./types";
-
-const MAX_TOKENS = 200;
+import { DEFAULT_MAX_TOKENS } from "./constants";
 
 export const getRegexFromString = (
   regexString: string,
   regexFlags: string,
 ): RegExp => {
-  let regex;
   try {
-    regex = new RegExp(regexString, regexFlags);
+    return new RegExp(regexString, regexFlags);
   } catch (error) {
     throw new Error(
       `Invalid regex pattern or flags provided: pattern="${regexString}", flags="${regexFlags}". Error: ${error}`,
     );
   }
-  return regex;
 };
 
 export const writeActionSummary = ({
@@ -45,6 +42,9 @@ export const writeActionSummary = ({
 export const getBaseFilename = (promptFile: string): string =>
   promptFile.replace(/\.prompt\.y.*ml$/, "");
 
+export const sanitizeLog = (input: string): string =>
+  JSON.stringify(input).slice(1, -1);
+
 export const getAILabelAssessmentValue = (
   promptFile: string,
   aiResponse: string,
@@ -58,8 +58,9 @@ export const getAILabelAssessmentValue = (
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
+      console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
-        assessment = `ai:${fileName}:${matchedAssessment}`;
+        assessment = `ai:${fileName}:${sanitizeLog(matchedAssessment)}`;
       }
     }
   }
@@ -73,13 +74,16 @@ export const getPromptFilesFromLabels = ({
 }: GetPromptFileFromLabelsParams): string[] => {
   const promptFiles = [];
   const labelsToPromptsMappingArr = labelsToPromptsMapping.split("|");
+  // Optimization: Create a Set for O(1) lookup
+  const issueLabelNames = new Set(issueLabels.map((l) => l?.name));
+
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
-    const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    const labelMatch = issueLabels.some(
-      (label) => label?.name == labelPromptArr[0],
-    );
-    if (labelMatch) {
-      promptFiles.push(labelPromptArr[1]);
+    const parts = labelPromptMapping.split(",");
+    if (parts.length >= 2) {
+      const labelName = parts[0].trim();
+      if (issueLabelNames.has(labelName)) {
+        promptFiles.push(parts[1].trim());
+      }
     }
   }
 
@@ -114,7 +118,7 @@ export const getPromptOptions: GetPromptOptions = (
     return {
       systemMsg: systemMsg.content,
       model: yamlData?.model,
-      maxTokens: yamlData?.modelParameters?.max_tokens || MAX_TOKENS,
+      maxTokens: yamlData?.modelParameters?.max_tokens || DEFAULT_MAX_TOKENS,
     };
   } catch (error) {
     if (error instanceof Error) {
