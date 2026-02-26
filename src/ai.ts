@@ -1,14 +1,13 @@
 import * as core from "@actions/core";
-import ModelClient, { isUnexpected } from "@azure-rest/ai-inference";
-import { AzureKeyCredential } from "@azure/core-auth";
+import { isUnexpected } from "@azure-rest/ai-inference";
 import type { AiInferenceFn } from "./types";
 
 export const aiInference: AiInferenceFn = async ({
   systemPromptMsg,
   endpoint,
+  client,
   modelName,
   maxTokens,
-  token,
   content,
 }) => {
   try {
@@ -16,7 +15,6 @@ export const aiInference: AiInferenceFn = async ({
     console.log(`Endpoint: ${endpoint}`);
     console.log(`Model: ${modelName}`);
     console.log(`Max Tokens: ${maxTokens}`);
-    const client = ModelClient(endpoint, new AzureKeyCredential(token));
 
     const response = await client.path("/chat/completions").post({
       body: {

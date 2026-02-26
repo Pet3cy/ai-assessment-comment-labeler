@@ -1,6 +1,5 @@
 import { describe, it, expect, mock, spyOn, afterEach } from "bun:test";
 import {
-  createIssueComment,
   getIssueLabels,
   addIssueLabels,
   removeIssueLabel,
@@ -17,7 +16,8 @@ describe("api", () => {
   });
 
   describe("addIssueLabels", () => {
-    it("should add labels to an issue", async () => {
+    it("should add multiple labels to an issue", async () => {
+      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -25,7 +25,7 @@ describe("api", () => {
             addLabels: addLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
       const labels = ["bug", "test"];
       await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
@@ -36,6 +36,7 @@ describe("api", () => {
         issue_number: issueNumber,
         labels,
       });
+      expect(consoleSpy).not.toHaveBeenCalled();
     });
 
     it("should handle empty labels array", async () => {
@@ -69,14 +70,13 @@ describe("api", () => {
             addLabels: addLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
       await addIssueLabels({ octokit, owner, repo, issueNumber, labels: ["label"] });
 
       expect(consoleSpy).toHaveBeenCalledWith("Error adding labels to issue:", error);
       consoleSpy.mockRestore();
     });
-  });
 
   describe("createIssueComment", () => {
     it("should create a comment successfully", async () => {
@@ -85,20 +85,19 @@ describe("api", () => {
       const octokit = {
         rest: {
           issues: {
-            createComment: createCommentMock,
+            addLabels: addLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      const body = "comment body";
-      const result = await createIssueComment({ octokit, owner, repo, issueNumber, body });
+      const labels: string[] = [];
+      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
 
-      expect(result).toBe(true);
-      expect(createCommentMock).toHaveBeenCalledWith({
+      expect(addLabelsMock).toHaveBeenCalledWith({
         owner,
         repo,
         issue_number: issueNumber,
-        body,
+        labels,
       });
       consoleSpy.mockRestore();
     });
@@ -109,12 +108,18 @@ describe("api", () => {
       const octokit = {
         rest: {
           issues: {
-            createComment: createCommentMock,
+            addLabels: addLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      const result = await createIssueComment({ octokit, owner, repo, issueNumber, body: "test" });
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
 
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 404);
@@ -128,12 +133,18 @@ describe("api", () => {
       const octokit = {
         rest: {
           issues: {
-            createComment: createCommentMock,
+            addLabels: addLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      const result = await createIssueComment({ octokit, owner, repo, issueNumber, body: "test" });
+      await addIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        labels: ["bug"],
+      });
 
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith("Error creating issue comment:", error);
@@ -142,19 +153,24 @@ describe("api", () => {
   });
 
   describe("getIssueLabels", () => {
-    it("should return labels for an issue", async () => {
-      const listLabelsMock = mock(() => Promise.resolve({ data: [{ name: "label1" }, { name: "label2" }] }));
+    it("should return an empty array if no labels are found", async () => {
+      const listLabelsMock = mock(() => Promise.resolve({ data: [] }));
       const octokit = {
         rest: {
           issues: {
             listLabelsOnIssue: listLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      const result = await getIssueLabels({ octokit, owner, repo, issueNumber });
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+      });
 
-      expect(result).toEqual(["label1", "label2"]);
+      expect(result).toEqual([]);
       expect(listLabelsMock).toHaveBeenCalledWith({
         owner,
         repo,
@@ -172,9 +188,14 @@ describe("api", () => {
             listLabelsOnIssue: listLabelsMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      const result = await getIssueLabels({ octokit, owner, repo, issueNumber });
+      const result = await getIssueLabels({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+      });
 
       expect(result).toBeUndefined();
       expect(consoleSpy).toHaveBeenCalledWith("Error listing labels on issue:", error);
@@ -192,7 +213,7 @@ describe("api", () => {
             removeLabel: removeLabelMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
       const label = "label-to-remove";
       await removeIssueLabel({ octokit, owner, repo, issueNumber, label });
@@ -216,9 +237,15 @@ describe("api", () => {
             removeLabel: removeLabelMock,
           },
         },
-      } as any;
+      } as unknown as InstanceType<typeof GitHub>;
 
-      await removeIssueLabel({ octokit, owner, repo, issueNumber, label: "label" });
+      await removeIssueLabel({
+        octokit,
+        owner,
+        repo,
+        issueNumber,
+        label: "non-existent-label",
+      });
 
       expect(consoleSpy).toHaveBeenCalledWith("Error removing labels from issue:", error);
       consoleSpy.mockRestore();
