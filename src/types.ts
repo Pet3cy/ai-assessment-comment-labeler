@@ -64,7 +64,7 @@ interface CreateCommentParams {
   body: string;
 }
 
-export type AddIssueLabelsFn = (params: AddLabelsParams) => Promise<void>;
+export type AddIssueLabelsFn = (params: AddLabelsParams) => Promise<boolean>;
 
 interface AddLabelsParams {
   octokit: InstanceType<typeof GitHub>;
@@ -74,7 +74,7 @@ interface AddLabelsParams {
   labels: string[];
 }
 
-export type RemoveIssueLabelFn = (params: RemoveLabelParams) => Promise<void>;
+export type RemoveIssueLabelFn = (params: RemoveLabelParams) => Promise<boolean>;
 
 interface RemoveLabelParams {
   octokit: InstanceType<typeof GitHub>;

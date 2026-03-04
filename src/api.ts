@@ -59,8 +59,10 @@ export const addIssueLabels: AddIssueLabelsFn = async ({
 }) => {
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
+    return true;
   } catch (error) {
     console.error("Error adding labels to issue:", error);
+    return false;
   }
 };
 
@@ -79,7 +81,9 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
       name: label,
     });
     console.log(`Label "${label}" removed from issue #${issue_number}`);
+    return true;
   } catch (error) {
     console.error("Error removing labels from issue:", error);
+    return false;
   }
 };
