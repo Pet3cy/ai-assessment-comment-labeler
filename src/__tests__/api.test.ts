@@ -1,4 +1,5 @@
 import { describe, it, expect, mock, spyOn, afterEach } from "bun:test";
+import { GitHub } from "@actions/github/lib/utils";
 import {
   getIssueLabels,
   addIssueLabels,
@@ -16,7 +17,7 @@ describe("api", () => {
   });
 
   describe("addIssueLabels", () => {
-    it("should add multiple labels to an issue", async () => {
+    it("should add multiple labels to an issue and return true", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
@@ -28,8 +29,9 @@ describe("api", () => {
       } as unknown as InstanceType<typeof GitHub>;
 
       const labels = ["bug", "test"];
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
+      const result = await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
 
+      expect(result).toBe(true);
       expect(addLabelsMock).toHaveBeenCalledWith({
         owner,
         repo,
@@ -39,7 +41,7 @@ describe("api", () => {
       expect(consoleSpy).not.toHaveBeenCalled();
     });
 
-    it("should handle empty labels array", async () => {
+    it("should handle empty labels array and return true", async () => {
       const addLabelsMock = mock(() => Promise.resolve({}));
       const octokit = {
         rest: {
@@ -50,8 +52,9 @@ describe("api", () => {
       } as any;
 
       const labels: string[] = [];
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
+      const result = await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
 
+      expect(result).toBe(true);
       expect(addLabelsMock).toHaveBeenCalledWith({
         owner,
         repo,
@@ -60,7 +63,7 @@ describe("api", () => {
       });
     });
 
-    it("should handle error when adding labels", async () => {
+    it("should handle error when adding labels and return false", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const error = new Error("API Error");
       const addLabelsMock = mock(() => Promise.reject(error));
@@ -72,82 +75,19 @@ describe("api", () => {
         },
       } as unknown as InstanceType<typeof GitHub>;
 
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels: ["label"] });
-
-      expect(consoleSpy).toHaveBeenCalledWith("Error adding labels to issue:", error);
-      consoleSpy.mockRestore();
-    });
-
-  describe("createIssueComment", () => {
-    it("should create a comment successfully", async () => {
-      const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
-      const createCommentMock = mock(() => Promise.resolve({ status: 201, data: { html_url: "url" } }));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      const labels: string[] = [];
-      await addIssueLabels({ octokit, owner, repo, issueNumber, labels });
-
-      expect(addLabelsMock).toHaveBeenCalledWith({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels,
-      });
-      consoleSpy.mockRestore();
-    });
-
-    it("should return false when comment creation fails", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const createCommentMock = mock(() => Promise.resolve({ status: 404 }));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      await addIssueLabels({
+      const result = await addIssueLabels({
         octokit,
         owner,
         repo,
         issueNumber,
-        labels: ["bug"],
+        labels: ["label"],
       });
 
       expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 404);
-      consoleSpy.mockRestore();
-    });
-
-    it("should handle error when creating a comment", async () => {
-      const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
-      const error = new Error("API Error");
-      const createCommentMock = mock(() => Promise.reject(error));
-      const octokit = {
-        rest: {
-          issues: {
-            addLabels: addLabelsMock,
-          },
-        },
-      } as unknown as InstanceType<typeof GitHub>;
-
-      await addIssueLabels({
-        octokit,
-        owner,
-        repo,
-        issueNumber,
-        labels: ["bug"],
-      });
-
-      expect(result).toBe(false);
-      expect(consoleSpy).toHaveBeenCalledWith("Error creating issue comment:", error);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error adding labels to issue:",
+        error,
+      );
       consoleSpy.mockRestore();
     });
   });
@@ -198,13 +138,16 @@ describe("api", () => {
       });
 
       expect(result).toBeUndefined();
-      expect(consoleSpy).toHaveBeenCalledWith("Error listing labels on issue:", error);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error listing labels on issue:",
+        error,
+      );
       consoleSpy.mockRestore();
     });
   });
 
   describe("removeIssueLabel", () => {
-    it("should remove a label from an issue", async () => {
+    it("should remove a label from an issue and return true", async () => {
       const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
       const removeLabelMock = mock(() => Promise.resolve({}));
       const octokit = {
@@ -216,8 +159,9 @@ describe("api", () => {
       } as unknown as InstanceType<typeof GitHub>;
 
       const label = "label-to-remove";
-      await removeIssueLabel({ octokit, owner, repo, issueNumber, label });
+      const result = await removeIssueLabel({ octokit, owner, repo, issueNumber, label });
 
+      expect(result).toBe(true);
       expect(removeLabelMock).toHaveBeenCalledWith({
         owner,
         repo,
@@ -227,7 +171,7 @@ describe("api", () => {
       consoleSpy.mockRestore();
     });
 
-    it("should handle error when removing a label", async () => {
+    it("should handle error when removing a label and return false", async () => {
       const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
       const error = new Error("API Error");
       const removeLabelMock = mock(() => Promise.reject(error));
@@ -239,7 +183,7 @@ describe("api", () => {
         },
       } as unknown as InstanceType<typeof GitHub>;
 
-      await removeIssueLabel({
+      const result = await removeIssueLabel({
         octokit,
         owner,
         repo,
@@ -247,7 +191,11 @@ describe("api", () => {
         label: "non-existent-label",
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith("Error removing labels from issue:", error);
+      expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error removing labels from issue:",
+        error,
+      );
       consoleSpy.mockRestore();
     });
   });

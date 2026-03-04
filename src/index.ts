@@ -107,13 +107,16 @@ export const main = async () => {
 
   // Remove the aiReviewLabel trigger label
   console.log(`Removing label: ${sanitizeLog(aiReviewLabel)}`);
-  await removeIssueLabel({
+  const labelRemoved = await removeIssueLabel({
     octokit,
     owner,
     repo,
     issueNumber,
     label: aiReviewLabel,
   });
+  if (!labelRemoved) {
+    console.warn(`Failed to remove label: ${sanitizeLog(aiReviewLabel)}`);
+  }
 
   // Get Prompt file based on issue labels and mapping
   const promptFiles = getPromptFilesFromLabels({
@@ -206,13 +209,16 @@ export const main = async () => {
 
   if (labelsToAdd.length > 0) {
     console.log(`Adding labels: ${labelsToAdd.map(sanitizeLog).join(", ")}`);
-    await addIssueLabels({
+    const labelsAdded = await addIssueLabels({
       octokit,
       owner,
       repo,
       issueNumber,
       labels: labelsToAdd,
     });
+    if (!labelsAdded) {
+      throw new Error("Failed to add labels to the issue");
+    }
   } else {
     console.log("No labels to add found.");
   }
