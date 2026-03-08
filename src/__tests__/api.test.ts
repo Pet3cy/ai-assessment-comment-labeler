@@ -2,11 +2,11 @@ import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { GitHub } from "@actions/github/lib/utils";
 
 const infoMock = mock(() => {});
-const errorMock = mock(() => {});
+const warningMock = mock(() => {});
 
 mock.module("@actions/core", () => ({
   info: infoMock,
-  error: errorMock,
+  warning: warningMock,
 }));
 
 import {
@@ -23,7 +23,7 @@ describe("api", () => {
 
   beforeEach(() => {
     infoMock.mockClear();
-    errorMock.mockClear();
+    warningMock.mockClear();
   });
 
   describe("addIssueLabels", () => {
@@ -67,7 +67,7 @@ describe("api", () => {
         labels: ["label"],
       });
 
-      expect(errorMock).toHaveBeenCalledWith(
+      expect(warningMock).toHaveBeenCalledWith(
         `Error adding labels to issue: ${error}`,
       );
     });
@@ -126,7 +126,7 @@ describe("api", () => {
       });
 
       expect(result).toBe(false);
-      expect(errorMock).toHaveBeenCalledWith("Failed to create comment: 404");
+      expect(warningMock).toHaveBeenCalledWith("Failed to create comment: 404");
     });
 
     it("should handle error when creating a comment", async () => {
@@ -149,7 +149,7 @@ describe("api", () => {
       });
 
       expect(result).toBe(false);
-      expect(errorMock).toHaveBeenCalledWith(
+      expect(warningMock).toHaveBeenCalledWith(
         `Error creating issue comment: ${error}`,
       );
     });
@@ -202,7 +202,7 @@ describe("api", () => {
       });
 
       expect(result).toBeUndefined();
-      expect(errorMock).toHaveBeenCalledWith(
+      expect(warningMock).toHaveBeenCalledWith(
         `Error listing labels on issue: ${error}`,
       );
     });
@@ -253,7 +253,7 @@ describe("api", () => {
         label: "label",
       });
 
-      expect(errorMock).toHaveBeenCalledWith(
+      expect(warningMock).toHaveBeenCalledWith(
         `Error removing labels from issue: ${error}`,
       );
     });

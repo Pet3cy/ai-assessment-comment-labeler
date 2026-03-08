@@ -17,7 +17,7 @@ import {
 } from "./api";
 import type { Label } from "./types";
 
-export const main = async () => {
+const main = async () => {
   // Required inputs
   const token = getInput("token") || process.env.GITHUB_TOKEN;
   const owner = getInput("owner") || context?.repo?.owner;

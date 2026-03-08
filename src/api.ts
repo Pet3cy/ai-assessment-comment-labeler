@@ -24,11 +24,11 @@ export const createIssueComment: CreateIssueCommentFn = async ({
       core.info(`Comment created successfully: ${response.data.html_url}`);
       return true;
     } else {
-      core.error(`Failed to create comment: ${response.status}`);
+      core.warning(`Failed to create comment: ${response.status}`);
       return false;
     }
   } catch (error) {
-    core.error(`Error creating issue comment: ${error}`);
+    core.warning(`Error creating issue comment: ${error}`);
     return false;
   }
 };
@@ -47,7 +47,7 @@ export const getIssueLabels: GetIssueLabelsFn = async ({
     });
     return response.data.map((label) => label.name);
   } catch (error) {
-    core.error(`Error listing labels on issue: ${error}`);
+    core.warning(`Error listing labels on issue: ${error}`);
   }
 };
 
@@ -61,7 +61,7 @@ export const addIssueLabels: AddIssueLabelsFn = async ({
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
   } catch (error) {
-    core.error(`Error adding labels to issue: ${error}`);
+    core.warning(`Error adding labels to issue: ${error}`);
   }
 };
 
@@ -81,6 +81,6 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
     });
     core.info(`Label "${label}" removed from issue #${issue_number}`);
   } catch (error) {
-    core.error(`Error removing labels from issue: ${error}`);
+    core.warning(`Error removing labels from issue: ${error}`);
   }
 };
