@@ -31153,11 +31153,11 @@ var createIssueComment = async ({
       core3.info(`Comment created successfully: ${response.data.html_url}`);
       return true;
     } else {
-      core3.error(`Failed to create comment: ${response.status}`);
+      core3.warning(`Failed to create comment: ${response.status}`);
       return false;
     }
   } catch (error2) {
-    core3.error(`Error creating issue comment: ${error2}`);
+    core3.warning(`Error creating issue comment: ${error2}`);
     return false;
   }
 };
@@ -31175,7 +31175,7 @@ var getIssueLabels = async ({
     });
     return response.data.map((label) => label.name);
   } catch (error2) {
-    core3.error(`Error listing labels on issue: ${error2}`);
+    core3.warning(`Error listing labels on issue: ${error2}`);
   }
 };
 var addIssueLabels = async ({
@@ -31188,7 +31188,7 @@ var addIssueLabels = async ({
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
   } catch (error2) {
-    core3.error(`Error adding labels to issue: ${error2}`);
+    core3.warning(`Error adding labels to issue: ${error2}`);
   }
 };
 var removeIssueLabel = async ({
@@ -31207,7 +31207,7 @@ var removeIssueLabel = async ({
     });
     core3.info(`Label "${label}" removed from issue #${issue_number}`);
   } catch (error2) {
-    core3.error(`Error removing labels from issue: ${error2}`);
+    core3.warning(`Error removing labels from issue: ${error2}`);
   }
 };
 
@@ -31339,6 +31339,4 @@ var main = async () => {
 if (true) {
   main();
 }
-export {
-  main
-};
+
