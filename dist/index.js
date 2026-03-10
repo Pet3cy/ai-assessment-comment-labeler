@@ -31098,7 +31098,7 @@ var getPromptFilesFromLabels = ({
   const labelsToPromptsMappingArr = labelsToPromptsMapping.split("|");
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    if (labelPromptArr.length < 2)
+    if (labelPromptArr.length < 2 || !labelPromptArr[1])
       continue;
     const labelMatch = issueLabels.some((label) => label?.name == labelPromptArr[0]);
     if (labelMatch) {
