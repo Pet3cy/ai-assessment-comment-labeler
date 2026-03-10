@@ -94,10 +94,17 @@ export const getPromptOptions: GetPromptOptions = (
   promptFile,
   promptsDirectory,
 ) => {
-  const fileContents = fs.readFileSync(
-    path.resolve(process.cwd(), promptsDirectory, promptFile),
-    "utf-8",
-  );
+  const resolvedPromptsDir = path.resolve(process.cwd(), promptsDirectory);
+  const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
+
+  if (
+    !resolvedPromptFile.startsWith(resolvedPromptsDir) ||
+    path.relative(resolvedPromptsDir, resolvedPromptFile).startsWith("..")
+  ) {
+    throw new Error(`Invalid prompt file path: ${promptFile}`);
+  }
+
+  const fileContents = fs.readFileSync(resolvedPromptFile, "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }
