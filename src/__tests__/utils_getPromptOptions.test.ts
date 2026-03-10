@@ -72,4 +72,15 @@ describe("getPromptOptions error paths", () => {
       getPromptOptions("empty-system.yml", ".");
     }).toThrow("Unable to parse system prompt file: System message not found in the prompt file");
   });
+
+  it("should throw error for path traversal attempts", () => {
+    const promptFile = "../../../etc/passwd";
+    const promptsDirectory = "prompts";
+
+    expect(() => {
+      getPromptOptions(promptFile, promptsDirectory);
+    }).toThrow(`Invalid prompt file path: ${promptFile}`);
+
+    expect(readFileSyncMock).not.toHaveBeenCalled();
+  });
 });
