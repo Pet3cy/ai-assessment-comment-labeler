@@ -282,4 +282,58 @@ describe("createIssueComment", () => {
       undefined,
     );
   });
+
+  it("should handle synchronous error when calling createComment", async () => {
+    const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+    const error = new Error("Synchronous Error");
+    const octokit = {
+      rest: {
+        issues: {
+          createComment: mock(() => {
+            throw error;
+          }),
+        },
+      },
+    } as unknown as InstanceType<typeof GitHub>;
+
+    const result = await createIssueComment({
+      octokit,
+      owner,
+      repo,
+      issueNumber,
+      body: "test",
+    });
+
+    expect(result).toBe(false);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error creating issue comment:",
+      error,
+    );
+  });
+
+  it("should handle error when response is null", async () => {
+    const consoleSpy = spyOn(console, "error").mockImplementation(() => {});
+    const octokit = {
+      rest: {
+        issues: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          createComment: mock(() => Promise.resolve(null as any)),
+        },
+      },
+    } as unknown as InstanceType<typeof GitHub>;
+
+    const result = await createIssueComment({
+      octokit,
+      owner,
+      repo,
+      issueNumber,
+      body: "test",
+    });
+
+    expect(result).toBe(false);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error creating issue comment:",
+      expect.any(TypeError),
+    );
+  });
 });
