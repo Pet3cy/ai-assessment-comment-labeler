@@ -13,23 +13,23 @@ mock.module("@actions/core", () => ({
   error: () => {},
   warning: () => {},
   debug: () => {},
-  summary: {
-    addHeading: () => ({
-      addHeading: () => ({
-        addCodeBlock: () => ({
-          addHeading: () => ({
-            addCodeBlock: () => ({
-              addHeading: () => ({
-                addCodeBlock: () => ({
-                  write: () => {},
-                }),
-              }),
-            }),
-          }),
-        }),
+  summary: (() => {
+    const s = {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      addHeading: mock(function (this: any) {
+        return this;
       }),
-    }),
-  },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      addCodeBlock: mock(function (this: any) {
+        return this;
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      write: mock(function (this: any) {
+        return this;
+      }),
+    };
+    return s;
+  })(),
 }));
 
 const mockListLabelsOnIssue = mock();
