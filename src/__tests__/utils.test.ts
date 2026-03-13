@@ -17,7 +17,14 @@ import {
 } from "../utils";
 import * as core from "@actions/core";
 
-// Mock @actions/core
+// Mock only the `summary` export from @actions/core.  All other exports
+// (getInput, setOutput, etc.) are re-exported so they remain available if
+// future tests in this file need them.
+//
+// We capture the real module *before* mock.module replaces it, then spread
+// its exports into the mock factory return value.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const actualCore = require("@actions/core");
 mock.module("@actions/core", () => {
   const summaryMethods = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,6 +41,7 @@ mock.module("@actions/core", () => {
     }),
   };
   return {
+    ...actualCore,
     summary: summaryMethods,
   };
 });
