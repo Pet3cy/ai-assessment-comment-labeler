@@ -309,10 +309,7 @@ describe("getBaseFilename", () => {
 
 describe("writeActionSummary", () => {
   beforeEach(() => {
-    // Clear mocks before each test
-    // Note: Since we are mocking the module, we need to access the mocked methods
-    // via the imported module or the mocked object if exported.
-    // In this case, we access via core.summary which refers to the mocked object.
+    // Clear mocks before each test so assertions are scoped to each test case.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (core.summary.addHeading as unknown as Mock<any>).mockClear();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
