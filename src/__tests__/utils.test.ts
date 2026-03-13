@@ -204,6 +204,18 @@ describe("getPromptFilesFromLabels", () => {
       }),
     ).toEqual([]);
   });
+
+  it("should handle trailing comma with no prompt file", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = "bug,|security,security-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("getRegexFromString", () => {
