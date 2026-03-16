@@ -77,7 +77,7 @@ export const getPromptFilesFromLabels = ({
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
     if (labelPromptArr.length < 2 || !labelPromptArr[1]) continue;
     const labelMatch = issueLabels.some(
-      (label) => label?.name == labelPromptArr[0],
+      (label) => label?.name === labelPromptArr[0],
     );
     if (labelMatch) {
       promptFiles.push(labelPromptArr[1]);

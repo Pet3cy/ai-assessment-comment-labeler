@@ -122,6 +122,57 @@ describe("getPromptFilesFromLabels", () => {
       }),
     ).toEqual(["bug-review.prompt.yml"]);
   });
+
+  it("should ignore malformed entries with missing prompt file (trailing pipe)", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should ignore entries with no comma separator", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|malformed-no-comma";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should ignore entries with empty prompt file after comma", () => {
+    const issueLabels = [{ name: "bug" }, { name: "feature" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|feature,";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should return empty array when all entries are malformed", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = "malformed|also-malformed|";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
 });
 
 describe("getRegexFromString", () => {
