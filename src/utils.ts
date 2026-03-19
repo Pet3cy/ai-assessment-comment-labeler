@@ -1,4 +1,4 @@
-import { summary } from "@actions/core";
+import { info, summary } from "@actions/core";
 import * as fs from "fs";
 import * as path from "path";
 import yaml from "js-yaml";
@@ -60,7 +60,7 @@ export const getAILabelAssessmentValue = (
     const match = line.match(assessmentRegex);
     if (match && match[1]) {
       const matchedAssessment = match[1].trim().toLowerCase();
-      console.log(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
+      info(`Assessment found: ${sanitizeLog(matchedAssessment)}`);
       if (matchedAssessment) {
         assessment = `ai:${fileName}:${matchedAssessment}`;
       }
