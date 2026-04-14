@@ -126,6 +126,9 @@ export const getPromptOptions: GetPromptOptions = (
 };
 
 export const sanitizeLog = (input: unknown): string => {
+  if (typeof input === "undefined") {
+    return "undefined";
+  }
   if (typeof input !== "string") {
     return JSON.stringify(input);
   }
