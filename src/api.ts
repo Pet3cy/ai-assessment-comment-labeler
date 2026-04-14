@@ -28,7 +28,9 @@ export const createIssueComment: CreateIssueCommentFn = async ({
       return false;
     }
   } catch (error) {
-    logError(`Error creating issue comment: ${error}`);
+    logError(
+      `Error creating issue comment: ${error instanceof Error ? error.stack || error.message : error}`,
+    );
     return false;
   }
 };
@@ -47,7 +49,9 @@ export const getIssueLabels: GetIssueLabelsFn = async ({
     });
     return response.data.map((label) => label.name);
   } catch (error) {
-    logError(`Error listing labels on issue: ${error}`);
+    logError(
+      `Error listing labels on issue: ${error instanceof Error ? error.stack || error.message : error}`,
+    );
   }
 };
 
@@ -61,7 +65,9 @@ export const addIssueLabels: AddIssueLabelsFn = async ({
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
   } catch (error) {
-    logError(`Error adding labels to issue: ${error}`);
+    logError(
+      `Error adding labels to issue: ${error instanceof Error ? error.stack || error.message : error}`,
+    );
   }
 };
 
@@ -81,6 +87,8 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
     });
     info(`Label "${label}" removed from issue #${issue_number}`);
   } catch (error) {
-    logError(`Error removing labels from issue: ${error}`);
+    logError(
+      `Error removing labels from issue: ${error instanceof Error ? error.stack || error.message : error}`,
+    );
   }
 };
