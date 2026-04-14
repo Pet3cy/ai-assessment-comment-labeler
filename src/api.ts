@@ -57,6 +57,7 @@ export const addIssueLabels: AddIssueLabelsFn = async ({
   issueNumber: issue_number,
   labels,
 }) => {
+  if (labels.length === 0) return;
   try {
     await octokit.rest.issues.addLabels({ owner, repo, issue_number, labels });
   } catch (error) {
