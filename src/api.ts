@@ -81,6 +81,6 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
     });
     console.log(`Label "${label}" removed from issue #${issue_number}`);
   } catch (error) {
-    console.error("Error removing labels from issue:", error);
+    console.error("Error removing label from issue:", error);
   }
 };

@@ -297,7 +297,7 @@ describe("api", () => {
         });
 
         expect(consoleSpy).toHaveBeenCalledWith(
-          "Error removing labels from issue:",
+          "Error removing label from issue:",
           error,
         );
       } finally {
