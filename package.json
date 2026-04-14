@@ -25,6 +25,7 @@
     "start": "bun run ./src/index.ts",
     "lint": "npx eslint .",
     "lintFix": "npx eslint . --fix",
-    "build": "npx eslint . --fix && rm -rf dist/ && bun build src/index.ts --outdir dist/ --target node"
+    "build:dist": "rm -rf dist/ && bun build src/index.ts --outdir dist/ --target node",
+    "build": "npx eslint . --fix && bun run build:dist"
   }
 }

@@ -49,10 +49,10 @@ jobs:
         id: install-deps
         run: bun install --frozen-lockfile
 
-      # Build the `dist/` directory.
+      # Build the `dist/` directory without lint --fix to avoid source modifications.
       - name: Build dist/ Directory
         id: build
-        run: bun run build
+        run: bun run build:dist
 
       # This will fail the workflow if the `dist/` directory is different than expected.
       - name: Compare Directories
