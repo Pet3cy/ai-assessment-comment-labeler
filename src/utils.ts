@@ -81,7 +81,7 @@ export const getPromptFilesFromLabels = ({
 
   for (const labelPromptMapping of labelsToPromptsMappingArr) {
     const labelPromptArr = labelPromptMapping.split(",").map((s) => s.trim());
-    if (issueLabelNames.has(labelPromptArr[0])) {
+    if (labelPromptArr.length >= 2 && issueLabelNames.has(labelPromptArr[0])) {
       promptFiles.push(labelPromptArr[1]);
     }
   }
@@ -93,10 +93,15 @@ export const getPromptOptions: GetPromptOptions = (
   promptFile,
   promptsDirectory,
 ) => {
-  const fileContents = fs.readFileSync(
-    path.resolve(process.cwd(), promptsDirectory, promptFile),
-    "utf-8",
-  );
+  const resolvedPromptsDir = path.resolve(process.cwd(), promptsDirectory);
+  const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
+  if (
+    !resolvedPromptFile.startsWith(resolvedPromptsDir + path.sep) &&
+    resolvedPromptFile !== resolvedPromptsDir
+  ) {
+    throw new Error(`Invalid prompt file path: ${promptFile}`);
+  }
+  const fileContents = fs.readFileSync(resolvedPromptFile, "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }
