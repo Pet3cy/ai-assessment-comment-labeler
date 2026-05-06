@@ -4,6 +4,7 @@ import type {
   AddIssueLabelsFn,
   RemoveIssueLabelFn,
 } from "./types";
+import { sanitizeLog } from "./utils";
 
 const handleGitHubApiCall = async <T>(
   apiCall: () => Promise<T>,
@@ -13,7 +14,13 @@ const handleGitHubApiCall = async <T>(
   try {
     return await apiCall();
   } catch (error) {
-    console.error(errorMessage, error);
+    const sanitizedErrorMessage = sanitizeLog(errorMessage);
+    const sanitizedError =
+      error instanceof Error
+        ? sanitizeLog(error.message)
+        : sanitizeLog(String(error));
+
+    console.error(sanitizedErrorMessage, sanitizedError);
     return defaultValue;
   }
 };
