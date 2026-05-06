@@ -100,6 +100,20 @@ describe("getAILabelAssessmentValue", () => {
       getAILabelAssessmentValue("test.prompt.yml", aiResponse, defaultRegex),
     ).toEqual("ai:test:neutral");
   });
+
+  it("should return the FIRST match when multiple matches are present", () => {
+    const aiResponse =
+      "### Assessment: first\n### Assessment: second";
+    // Currently this will FAIL because it returns 'ai:test:second'
+    // I will expect 'ai:test:first' for the final state
+    expect(
+      getAILabelAssessmentValue(
+        "test.prompt.yml",
+        aiResponse,
+        aiAssessmentRegex,
+      ),
+    ).toEqual("ai:test:first");
+  });
 });
 
 describe("getPromptFilesFromLabels", () => {
