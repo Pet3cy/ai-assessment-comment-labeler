@@ -92,7 +92,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error creating issue comment:",
-      error,
+      error.message,
     );
   });
 
@@ -122,7 +122,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error creating issue comment:",
-      expect.any(Error),
+      expect.any(String),
     );
   });
 
@@ -195,7 +195,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error creating issue comment:",
-      error,
+      error.message,
     );
   });
 
@@ -307,7 +307,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error creating issue comment:",
-      error,
+      error.message,
     );
   });
 
@@ -333,7 +333,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error creating issue comment:",
-      expect.any(TypeError),
+      expect.any(String),
     );
   });
 });
