@@ -446,7 +446,6 @@ describe("api", () => {
         owner,
         repo,
         issueNumber,
-        body: "test",
       });
 
       expect(result).toBeUndefined();
@@ -474,7 +473,6 @@ describe("api", () => {
         owner,
         repo,
         issueNumber,
-        body: "test",
       });
 
       expect(result).toBeUndefined();
