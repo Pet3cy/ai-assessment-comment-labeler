@@ -91,7 +91,7 @@ export const getPromptFilesFromLabels = ({
   return promptFiles;
 };
 
-export const getPromptOptions: GetPromptOptions = (
+export const getPromptOptions: GetPromptOptions = async (
   promptFile,
   promptsDirectory,
 ) => {
@@ -106,7 +106,7 @@ export const getPromptOptions: GetPromptOptions = (
     throw new Error(`Invalid prompt file path: ${promptFile}`);
   }
 
-  const fileContents = fs.readFileSync(resolvedPromptFile, "utf-8");
+  const fileContents = await fs.promises.readFile(resolvedPromptFile, "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }

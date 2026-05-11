@@ -1,11 +1,13 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import * as path from "path";
 
-const readFileSyncMock = mock();
+const readFileMock = mock();
 
 mock.module("fs", () => {
   return {
-    readFileSync: readFileSyncMock,
+    promises: {
+      readFile: readFileMock,
+    },
   };
 });
 
@@ -13,76 +15,74 @@ import { getPromptOptions } from "../utils";
 
 describe("getPromptOptions error paths", () => {
   beforeEach(() => {
-    readFileSyncMock.mockReset();
+    readFileMock.mockReset();
   });
 
-  it("should throw error if file reading fails", () => {
-    readFileSyncMock.mockImplementation(() => {
-      throw new Error("ENOENT: no such file or directory");
-    });
+  it("should throw error if file reading fails", async () => {
+    readFileMock.mockRejectedValue(new Error("ENOENT: no such file or directory"));
 
-    expect(() => {
-      getPromptOptions("non-existent.yml", ".");
-    }).toThrow("ENOENT: no such file or directory");
+    await expect(
+      getPromptOptions("non-existent.yml", "."),
+    ).rejects.toThrow("ENOENT: no such file or directory");
   });
 
-  it("should throw error if file content is empty", () => {
-    readFileSyncMock.mockReturnValue("");
+  it("should throw error if file content is empty", async () => {
+    readFileMock.mockResolvedValue("");
 
-    expect(() => {
-      getPromptOptions("empty.yml", ".");
-    }).toThrow("System prompt file not found: empty.yml");
+    await expect(
+      getPromptOptions("empty.yml", "."),
+    ).rejects.toThrow("System prompt file not found: empty.yml");
   });
 
-  it("should throw error if YAML parsing fails", () => {
-    readFileSyncMock.mockReturnValue("\tinvalid: yaml");
+  it("should throw error if YAML parsing fails", async () => {
+    readFileMock.mockResolvedValue("\tinvalid: yaml");
 
-    expect(() => {
-      getPromptOptions("invalid.yml", ".");
-    }).toThrow("Unable to parse system prompt file");
+    await expect(
+      getPromptOptions("invalid.yml", "."),
+    ).rejects.toThrow("Unable to parse system prompt file");
   });
 
-  it("should throw error if YAML is not an object or messages array missing", () => {
-    readFileSyncMock.mockReturnValue("some: value");
+  it("should throw error if YAML is not an object or messages array missing", async () => {
+    readFileMock.mockResolvedValue("some: value");
 
-    expect(() => {
-      getPromptOptions("no-messages.yml", ".");
-    }).toThrow("Unable to parse system prompt file: Invalid YAML format in the prompt file");
+    await expect(
+      getPromptOptions("no-messages.yml", "."),
+    ).rejects.toThrow("Unable to parse system prompt file: Invalid YAML format in the prompt file");
   });
 
-  it("should throw error if messages is not an array", () => {
-    readFileSyncMock.mockReturnValue("messages: not-an-array");
+  it("should throw error if messages is not an array", async () => {
+    readFileMock.mockResolvedValue("messages: not-an-array");
 
-    expect(() => {
-      getPromptOptions("invalid-messages.yml", ".");
-    }).toThrow("Unable to parse system prompt file: Invalid YAML format in the prompt file");
+    await expect(
+      getPromptOptions("invalid-messages.yml", "."),
+    ).rejects.toThrow("Unable to parse system prompt file: Invalid YAML format in the prompt file");
   });
 
-  it("should throw error if system message is missing", () => {
-    readFileSyncMock.mockReturnValue("messages:\n  - role: user\n    content: hi");
+  it("should throw error if system message is missing", async () => {
+    readFileMock.mockResolvedValue("messages:\n  - role: user\n    content: hi");
 
-    expect(() => {
-      getPromptOptions("no-system.yml", ".");
-    }).toThrow("Unable to parse system prompt file: System message not found in the prompt file");
+    await expect(
+      getPromptOptions("no-system.yml", "."),
+    ).rejects.toThrow("Unable to parse system prompt file: System message not found in the prompt file");
   });
 
-  it("should throw error if system message content is missing", () => {
-    readFileSyncMock.mockReturnValue("messages:\n  - role: system");
+  it("should throw error if system message content is missing", async () => {
+    readFileMock.mockResolvedValue("messages:\n  - role: system");
 
-    expect(() => {
-      getPromptOptions("empty-system.yml", ".");
-    }).toThrow("Unable to parse system prompt file: System message not found in the prompt file");
+    await expect(
+      getPromptOptions("empty-system.yml", "."),
+    ).rejects.toThrow("Unable to parse system prompt file: System message not found in the prompt file");
   });
 
-  it("should throw error for path traversal attempts", () => {
+  it("should throw error for path traversal attempts", async () => {
     const promptFile = "../../../etc/passwd";
     const promptsDirectory = "prompts";
 
-    expect(() => {
-      getPromptOptions(promptFile, promptsDirectory);
-    }).toThrow(`Invalid prompt file path: ${promptFile}`);
+    await expect(
+      getPromptOptions(promptFile, promptsDirectory),
+    ).rejects.toThrow(`Invalid prompt file path: ${promptFile}`);
 
-    expect(readFileSyncMock).not.toHaveBeenCalled();
+    expect(readFileMock).not.toHaveBeenCalled();
   });
 
   it("should throw error for absolute path", () => {
