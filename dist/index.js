@@ -31102,7 +31102,7 @@ var getPromptFilesFromLabels = ({
       continue;
     const labelMatch = issueLabels.some((label) => label?.name == labelPromptArr[0]);
     if (labelMatch) {
-      promptFiles.push(labelPromptArr[1]);
+    const labelMatch = issueLabels.some((label) => label?.name === labelPromptArr[0]);
     }
   }
   return promptFiles;
