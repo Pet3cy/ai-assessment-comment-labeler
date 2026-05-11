@@ -146,6 +146,19 @@ describe("getPromptFilesFromLabels", () => {
     ).toEqual(["bug-review.prompt.yml"]);
   });
 
+  it("should deduplicate prompt files if multiple labels map to the same file", () => {
+    const issueLabels = [{ name: "bug" }, { name: "crash" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|crash,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
   it("should return an empty array if labelsToPromptsMapping is empty", () => {
     const issueLabels = [{ name: "bug" }];
     const labelsToPromptsMapping = "";
