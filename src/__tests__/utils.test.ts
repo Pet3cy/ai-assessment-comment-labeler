@@ -146,6 +146,85 @@ describe("getPromptFilesFromLabels", () => {
     ).toEqual(["bug-review.prompt.yml"]);
   });
 
+  it("should deduplicate prompt files if multiple labels map to the same file", () => {
+    const issueLabels = [{ name: "bug" }, { name: "crash" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|crash,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should deduplicate when three or more labels all map to the same file", () => {
+    const issueLabels = [
+      { name: "bug" },
+      { name: "crash" },
+      { name: "regression" },
+    ];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|crash,bug-review.prompt.yml|regression,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should deduplicate shared files while preserving distinct files in insertion order", () => {
+    const issueLabels = [
+      { name: "bug" },
+      { name: "crash" },
+      { name: "security" },
+    ];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|crash,bug-review.prompt.yml|security,security-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml", "security-review.prompt.yml"]);
+  });
+
+  it("should deduplicate when the same label-to-file mapping appears multiple times in the mapping string", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|bug,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should return each unique file exactly once even with many matching labels", () => {
+    const issueLabels = [
+      { name: "a" },
+      { name: "b" },
+      { name: "c" },
+      { name: "d" },
+    ];
+    const labelsToPromptsMapping =
+      "a,shared.prompt.yml|b,shared.prompt.yml|c,shared.prompt.yml|d,shared.prompt.yml";
+
+    const result = getPromptFilesFromLabels({
+      issueLabels,
+      labelsToPromptsMapping,
+    });
+
+    expect(result).toEqual(["shared.prompt.yml"]);
+    expect(result).toHaveLength(1);
+  });
+
   it("should return an empty array if labelsToPromptsMapping is empty", () => {
     const issueLabels = [{ name: "bug" }];
     const labelsToPromptsMapping = "";
