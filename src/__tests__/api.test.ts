@@ -1,10 +1,12 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
 import { GitHub } from "@actions/github/lib/utils";
+import * as actualCore from "@actions/core";
 
 const infoMock = mock(() => {});
 const warningMock = mock(() => {});
 
 mock.module("@actions/core", () => ({
+  ...actualCore,
   info: infoMock,
   warning: warningMock,
 }));
