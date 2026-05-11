@@ -176,4 +176,70 @@ describe("main", () => {
 
     expect(mockRemoveLabel).toHaveBeenCalled();
   });
+
+  it("should throw an error if createIssueComment fails", async () => {
+    // Return "bug" label to proceed to AI assessment
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // Mock createComment to return failure status
+    mockCreateComment.mockResolvedValue({ status: 500 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error with the exact message 'Failed to create comment' when createComment returns status 500", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 500 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+    // Confirm no broader/different error is thrown
+    await expect(main()).rejects.not.toThrow("Failed to add labels");
+  });
+
+  it("should throw an error if createIssueComment returns status 200 (only 201 is success)", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // Status 200 is not the expected 201 created status
+    mockCreateComment.mockResolvedValue({ status: 200 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error if createIssueComment returns status 404", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 404 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error if createComment call itself throws (network error)", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // When createComment throws, handleGitHubApiCall catches it and returns false,
+    // causing main() to throw "Failed to create comment"
+    mockCreateComment.mockRejectedValue(new Error("Network error"));
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should not throw if createIssueComment returns status 201 (success)", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 201, data: { html_url: "https://example.com" } });
+
+    await expect(main()).resolves.not.toThrow();
+    expect(mockCreateComment).toHaveBeenCalled();
+  });
+
+  it("should call createComment with correct parameters", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 201, data: { html_url: "https://example.com" } });
+
+    await main();
+
+    expect(mockCreateComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: "test-owner",
+        repo: "test-repo",
+        issue_number: 1,
+        body: expect.any(String),
+      }),
+    );
+  });
 });
