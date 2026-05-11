@@ -176,4 +176,13 @@ describe("main", () => {
 
     expect(mockRemoveLabel).toHaveBeenCalled();
   });
+
+  it("should throw an error if createIssueComment fails", async () => {
+    // Return "bug" label to proceed to AI assessment
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // Mock createComment to return failure status
+    mockCreateComment.mockResolvedValue({ status: 500 });
+
+    expect(main()).rejects.toThrow("Failed to create comment");
+  });
 });
