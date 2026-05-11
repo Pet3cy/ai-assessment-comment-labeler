@@ -46,11 +46,11 @@ export interface WriteActionSummaryParams {
 export type GetPromptOptions = (
   promptFile: string,
   promptsDirectory: string,
-) => {
+) => Promise<{
   systemMsg: string;
   model: string;
   maxTokens: number;
-};
+}>;
 
 export type CreateIssueCommentFn = (
   params: CreateCommentParams,

@@ -31106,8 +31106,8 @@ var getPromptFilesFromLabels = ({
   }
   return promptFiles;
 };
-var getPromptOptions = (promptFile, promptsDirectory) => {
-  const fileContents = fs.readFileSync(path.resolve(process.cwd(), promptsDirectory, promptFile), "utf-8");
+var getPromptOptions = async (promptFile, promptsDirectory) => {
+  const fileContents = await fs.promises.readFile(path.resolve(process.cwd(), promptsDirectory, promptFile), "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }
@@ -31275,7 +31275,7 @@ var main = async () => {
   }
   const processPrompt = async (promptFile) => {
     console.log(`Using prompt file: ${promptFile}`);
-    const promptOptions = getPromptOptions(promptFile, promptsDirectory);
+    const promptOptions = await getPromptOptions(promptFile, promptsDirectory);
     const aiResponse = await aiInference({
       client,
       content: issueBody,

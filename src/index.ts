@@ -134,7 +134,7 @@ export const main = async () => {
 
   const processPrompt = async (promptFile: string) => {
     console.log(`Using prompt file: ${sanitizeLog(promptFile)}`);
-    const promptOptions = getPromptOptions(promptFile, promptsDirectory);
+    const promptOptions = await getPromptOptions(promptFile, promptsDirectory);
 
     const aiResponse = await aiInference({
       client,
