@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import { isUnexpected } from "@azure-rest/ai-inference";
 import type { AiInferenceFn } from "./types";
+import { sanitizeLog } from "./utils";
 
 export const aiInference: AiInferenceFn = async ({
   systemPromptMsg,
@@ -12,9 +13,9 @@ export const aiInference: AiInferenceFn = async ({
 }) => {
   try {
     console.log("AI configuration:");
-    console.log(`Endpoint: ${endpoint}`);
-    console.log(`Model: ${modelName}`);
-    console.log(`Max Tokens: ${maxTokens}`);
+    console.log(`Endpoint: ${sanitizeLog(endpoint)}`);
+    console.log(`Model: ${sanitizeLog(modelName)}`);
+    console.log(`Max Tokens: ${sanitizeLog(maxTokens)}`);
 
     const response = await client.path("/chat/completions").post({
       body: {

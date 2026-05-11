@@ -42,8 +42,8 @@ export const writeActionSummary = ({
 export const getBaseFilename = (promptFile: string): string =>
   promptFile.replace(/\.prompt\.y.*ml$/, "");
 
-export const sanitizeLog = (input: string): string =>
-  JSON.stringify(input).slice(1, -1);
+export const sanitizeLog = (input: any): string =>
+  JSON.stringify(String(input)).slice(1, -1);
 
 export const getAILabelAssessmentValue = (
   promptFile: string,
@@ -91,7 +91,7 @@ export const getPromptFilesFromLabels = ({
   return promptFiles;
 };
 
-export const getPromptOptions: GetPromptOptions = (
+export const getPromptOptions: GetPromptOptions = async (
   promptFile,
   promptsDirectory,
 ) => {
@@ -99,13 +99,14 @@ export const getPromptOptions: GetPromptOptions = (
   const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
 
   if (
+    path.isAbsolute(promptFile) ||
     !resolvedPromptFile.startsWith(resolvedPromptsDir) ||
     path.relative(resolvedPromptsDir, resolvedPromptFile).startsWith("..")
   ) {
     throw new Error(`Invalid prompt file path: ${promptFile}`);
   }
 
-  const fileContents = fs.readFileSync(resolvedPromptFile, "utf-8");
+  const fileContents = await fs.promises.readFile(resolvedPromptFile, "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }
