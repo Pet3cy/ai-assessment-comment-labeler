@@ -130,7 +130,7 @@ export const getPromptOptions: GetPromptOptions = (
     };
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error("Unable to parse system prompt file: " + error.message);
+      throw new Error(`Unable to parse system prompt file: ${error.message}`);
     } else {
       throw new Error("Unable to parse system prompt file");
     }
