@@ -18,7 +18,7 @@ const handleGitHubApiCall = async <T>(
     const sanitizedError =
       error instanceof Error
         ? sanitizeLog(error.message)
-        : sanitizeLog(String(error));
+        : sanitizeLog(error);
 
     console.error(sanitizedErrorMessage, sanitizedError);
     return defaultValue;
@@ -41,10 +41,16 @@ export const createIssueComment: CreateIssueCommentFn = async ({
         body,
       });
       if (response.status === 201) {
-        console.log("Comment created successfully:", response.data.html_url);
+        console.log(
+          "Comment created successfully:",
+          sanitizeLog(response.data.html_url),
+        );
         return true;
       } else {
-        console.error("Failed to create comment:", response.status);
+        console.error(
+          "Failed to create comment:",
+          sanitizeLog(response.status),
+        );
         return false;
       }
     },
@@ -105,7 +111,9 @@ export const removeIssueLabel: RemoveIssueLabelFn = async ({
         issue_number,
         name: label,
       });
-      console.log(`Label "${label}" removed from issue #${issue_number}`);
+      console.log(
+        sanitizeLog(`Label "${label}" removed from issue #${issue_number}`),
+      );
       return true;
     },
     "Error removing labels from issue:",

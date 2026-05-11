@@ -66,7 +66,7 @@ describe("createIssueComment", () => {
     });
 
     expect(result).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 404);
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", "404");
   });
 
   it("should handle error when creating a comment", async () => {
@@ -146,7 +146,7 @@ describe("createIssueComment", () => {
     });
 
     expect(result).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 403);
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", "403");
   });
 
   it("should return false and log error for 422 Unprocessable Entity", async () => {
@@ -169,7 +169,7 @@ describe("createIssueComment", () => {
     });
 
     expect(result).toBe(false);
-    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", 422);
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to create comment:", "422");
   });
 
   it("should handle timeout error", async () => {
@@ -223,7 +223,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(true);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Comment created successfully:",
-      undefined,
+      "undefined",
     );
   });
 
@@ -279,7 +279,7 @@ describe("createIssueComment", () => {
     expect(result).toBe(false);
     expect(consoleSpy).toHaveBeenCalledWith(
       "Failed to create comment:",
-      undefined,
+      "undefined",
     );
   });
 
