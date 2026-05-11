@@ -91,7 +91,7 @@ const main = async () => {
 
   // Check if the issue requires AI review based on the aiReviewLabel
   const requireAiReview = issueLabels.some(
-    (label) => label?.name == aiReviewLabel,
+    (label) => label?.name === aiReviewLabel,
   );
   if (!requireAiReview) {
     console.log(
