@@ -95,12 +95,26 @@ export const getPromptOptions: GetPromptOptions = (
   promptFile,
   promptsDirectory,
 ) => {
-  const resolvedPromptsDir = path.resolve(process.cwd(), promptsDirectory);
+  const workspaceRoot = path.resolve(process.cwd());
+  const resolvedPromptsDir = path.resolve(workspaceRoot, promptsDirectory);
+
+  const relativePromptsDir = path.relative(workspaceRoot, resolvedPromptsDir);
+  if (
+    relativePromptsDir.startsWith("..") ||
+    path.isAbsolute(relativePromptsDir)
+  ) {
+    throw new Error(`Invalid prompts directory: ${promptsDirectory}`);
+  }
+
   const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
+  const relativePromptFile = path.relative(
+    resolvedPromptsDir,
+    resolvedPromptFile,
+  );
 
   if (
-    !resolvedPromptFile.startsWith(resolvedPromptsDir) ||
-    path.relative(resolvedPromptsDir, resolvedPromptFile).startsWith("..")
+    relativePromptFile.startsWith("..") ||
+    path.isAbsolute(relativePromptFile)
   ) {
     throw new Error(`Invalid prompt file path: ${promptFile}`);
   }

@@ -31107,7 +31107,18 @@ var getPromptFilesFromLabels = ({
   return promptFiles;
 };
 var getPromptOptions = (promptFile, promptsDirectory) => {
-  const fileContents = fs.readFileSync(path.resolve(process.cwd(), promptsDirectory, promptFile), "utf-8");
+  const workspaceRoot = path.resolve(process.cwd());
+  const resolvedPromptsDir = path.resolve(workspaceRoot, promptsDirectory);
+  const relativePromptsDir = path.relative(workspaceRoot, resolvedPromptsDir);
+  if (relativePromptsDir.startsWith("..") || path.isAbsolute(relativePromptsDir)) {
+    throw new Error(`Invalid prompts directory: ${promptsDirectory}`);
+  }
+  const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
+  const relativePromptFile = path.relative(resolvedPromptsDir, resolvedPromptFile);
+  if (relativePromptFile.startsWith("..") || path.isAbsolute(relativePromptFile)) {
+    throw new Error(`Invalid prompt file path: ${promptFile}`);
+  }
+  const fileContents = fs.readFileSync(resolvedPromptFile, "utf-8");
   if (!fileContents) {
     throw new Error(`System prompt file not found: ${promptFile}`);
   }
