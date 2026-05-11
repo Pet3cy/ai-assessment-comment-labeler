@@ -176,4 +176,58 @@ describe("main", () => {
 
     expect(mockRemoveLabel).toHaveBeenCalled();
   });
+
+  it("should throw an error if createIssueComment fails", async () => {
+    // Return "bug" label to proceed to AI assessment
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // Mock createComment to return failure status
+    mockCreateComment.mockResolvedValue({ status: 500 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error if createIssueComment returns status 404", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 404 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error if createIssueComment returns status 400", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 400 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should throw an error if createIssueComment returns status 200 (not 201)", async () => {
+    // Only HTTP 201 is treated as success; 200 should still cause a failure
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 200 });
+
+    await expect(main()).rejects.toThrow("Failed to create comment");
+  });
+
+  it("should not throw even if createComment would fail when suppress_comments is true", async () => {
+    // suppress_comments bypasses createIssueComment entirely, so no error is thrown
+    mockGetBooleanInput.mockImplementation((name) => {
+      if (name === "suppress_comments") return true;
+      return false;
+    });
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    // Even though createComment is set to fail, it should never be called
+    mockCreateComment.mockResolvedValue({ status: 500 });
+
+    await expect(main()).resolves.not.toThrow();
+    expect(mockCreateComment).not.toHaveBeenCalled();
+  });
+
+  it("should throw the exact error message 'Failed to create comment'", async () => {
+    mockListLabelsOnIssue.mockResolvedValue({ data: [{ name: "bug" }] });
+    mockCreateComment.mockResolvedValue({ status: 503 });
+
+    const error = await main().catch((e) => e);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toBe("Failed to create comment");
+  });
 });

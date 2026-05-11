@@ -86,7 +86,7 @@ describe("api", () => {
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error adding labels to issue:",
-        error,
+        error.message,
       );
       consoleSpy.mockRestore();
     });
@@ -140,7 +140,7 @@ describe("api", () => {
       expect(result).toBeUndefined();
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error listing labels on issue:",
-        error,
+        error.message,
       );
       consoleSpy.mockRestore();
     });
@@ -194,7 +194,7 @@ describe("api", () => {
       expect(result).toBe(false);
       expect(consoleSpy).toHaveBeenCalledWith(
         "Error removing labels from issue:",
-        error,
+        error.message,
       );
       consoleSpy.mockRestore();
     });
