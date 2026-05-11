@@ -1,4 +1,5 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test";
+import * as path from "path";
 
 const readFileSyncMock = mock();
 
@@ -76,6 +77,31 @@ describe("getPromptOptions error paths", () => {
   it("should throw error for path traversal attempts", () => {
     const promptFile = "../../../etc/passwd";
     const promptsDirectory = "prompts";
+
+    expect(() => {
+      getPromptOptions(promptFile, promptsDirectory);
+    }).toThrow(`Invalid prompt file path: ${promptFile}`);
+
+    expect(readFileSyncMock).not.toHaveBeenCalled();
+  });
+
+  it("should throw error for absolute path", () => {
+    const promptFile = "/etc/passwd";
+    const promptsDirectory = "prompts";
+
+    expect(() => {
+      getPromptOptions(promptFile, promptsDirectory);
+    }).toThrow(`Invalid prompt file path: ${promptFile}`);
+
+    expect(readFileSyncMock).not.toHaveBeenCalled();
+  });
+
+  it("should throw error for absolute path that seems safe but is absolute", () => {
+    // Even if it starts with the prompts directory, if it's absolute it should be rejected if we want to enforce relative paths for the second argument of our resolution logic to be safe.
+    // In our implementation, path.isAbsolute(promptFile) will catch this.
+    const promptsDirectory = "prompts";
+    const resolvedPromptsDir = path.resolve(process.cwd(), promptsDirectory);
+    const promptFile = path.join(resolvedPromptsDir, "test.yml");
 
     expect(() => {
       getPromptOptions(promptFile, promptsDirectory);
