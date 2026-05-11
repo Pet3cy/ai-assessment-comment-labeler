@@ -36,10 +36,7 @@ export const aiInference: AiInferenceFn = async ({
         throw response.body.error;
       }
       throw new Error(
-        "An error occurred while fetching the response (" +
-          response.status +
-          "): " +
-          response.body,
+        `An error occurred while fetching the response (${response.status}): ${JSON.stringify(response.body)}`,
       );
     }
 
