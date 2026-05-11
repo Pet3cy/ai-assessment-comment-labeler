@@ -183,6 +183,6 @@ describe("main", () => {
     // Mock createComment to return failure status
     mockCreateComment.mockResolvedValue({ status: 500 });
 
-    expect(main()).rejects.toThrow("Failed to create comment");
+    await expect(main()).rejects.toThrow("Failed to create comment");
   });
 });
