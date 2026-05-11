@@ -99,6 +99,7 @@ export const getPromptOptions: GetPromptOptions = async (
   const resolvedPromptFile = path.resolve(resolvedPromptsDir, promptFile);
 
   if (
+    path.isAbsolute(promptFile) ||
     !resolvedPromptFile.startsWith(resolvedPromptsDir) ||
     path.relative(resolvedPromptsDir, resolvedPromptFile).startsWith("..")
   ) {
