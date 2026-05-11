@@ -50,6 +50,8 @@ export const aiInference: AiInferenceFn = async ({
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {
       core.setFailed(error.message);
+    } else if (typeof error === "string") {
+      core.setFailed(error);
     } else if (typeof error === "object" && error !== null && "message" in error) {
       core.setFailed(String((error as { message: unknown }).message));
     } else {
