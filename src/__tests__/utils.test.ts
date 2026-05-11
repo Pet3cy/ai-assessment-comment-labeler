@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect, spyOn } from "bun:test";
 import {
   getPromptOptions,
   getAILabelAssessmentValue,
@@ -29,6 +29,15 @@ describe("getPromptOptions", () => {
       systemMsg: bugIntakePrompt,
       model: "openai/gpt-4o-mini",
       maxTokens: 100,
+    });
+  });
+  it("should return the default maxTokens when not provided in the prompt file", () => {
+    expect(
+      getPromptOptions("test-default.yml", "./src/__tests__/test_prompts"),
+    ).toEqual({
+      systemMsg: "System prompt",
+      model: "openai/gpt-4o-mini",
+      maxTokens: 200,
     });
   });
 });
@@ -91,6 +100,20 @@ describe("getAILabelAssessmentValue", () => {
       getAILabelAssessmentValue("test.prompt.yml", aiResponse, defaultRegex),
     ).toEqual("ai:test:neutral");
   });
+
+  it("should return the FIRST match when multiple matches are present", () => {
+    const aiResponse =
+      "### Assessment: first\n### Assessment: second";
+    // Currently this will FAIL because it returns 'ai:test:second'
+    // I will expect 'ai:test:first' for the final state
+    expect(
+      getAILabelAssessmentValue(
+        "test.prompt.yml",
+        aiResponse,
+        aiAssessmentRegex,
+      ),
+    ).toEqual("ai:test:first");
+  });
 });
 
 describe("getPromptFilesFromLabels", () => {
@@ -121,6 +144,67 @@ describe("getPromptFilesFromLabels", () => {
         labelsToPromptsMapping,
       }),
     ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should return an empty array if labelsToPromptsMapping is empty", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = "";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
+
+  it("should return an empty array if no labels match", () => {
+    const issueLabels = [{ name: "feature" }];
+    const labelsToPromptsMapping = "bug,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
+  });
+
+  it("should return multiple prompt files if multiple labels match", () => {
+    const issueLabels = [{ name: "bug" }, { name: "security" }];
+    const labelsToPromptsMapping =
+      "bug,bug-review.prompt.yml|security,security-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml", "security-review.prompt.yml"]);
+  });
+
+  it("should handle whitespace in labelsToPromptsMapping", () => {
+    const issueLabels = [{ name: "bug" }];
+    const labelsToPromptsMapping = " bug , bug-review.prompt.yml ";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual(["bug-review.prompt.yml"]);
+  });
+
+  it("should return an empty array if issueLabels is empty", () => {
+    const issueLabels: { name: string }[] = [];
+    const labelsToPromptsMapping = "bug,bug-review.prompt.yml";
+
+    expect(
+      getPromptFilesFromLabels({
+        issueLabels,
+        labelsToPromptsMapping,
+      }),
+    ).toEqual([]);
   });
 });
 
@@ -170,6 +254,13 @@ describe("getRegexFromString", () => {
       regex.test("### Well-form: Yes\n<!-- NO-COMMENT -->\nThis is a test."),
     ).toBe(true);
   });
+
+  it("should not log to console", () => {
+    const consoleSpy = spyOn(console, "log").mockImplementation(() => {});
+    getRegexFromString("test", "g");
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
 });
 
 describe("getBaseFilename", () => {
@@ -186,5 +277,22 @@ describe("getBaseFilename", () => {
   it("should return the original filename if no prompt extension", () => {
     const result = getBaseFilename("test.txt");
     expect(result).toEqual("test.txt");
+  });
+});
+
+describe("getAILabelAssessmentValue Security", () => {
+  const aiAssessmentRegex = new RegExp("^###.*assessment:\\s*(.+)$", "i");
+
+  it("should sanitize malicious input containing ANSI escape codes", () => {
+    const maliciousResponse = "### Assessment: Malicious\u001b[31mCode";
+    const result = getAILabelAssessmentValue(
+        "test.prompt.yml",
+        maliciousResponse,
+        aiAssessmentRegex,
+    );
+    // Expect backslash to be escaped, so it is visible string "\u001b" not control char
+    // The control char \x1b becomes string "\u001b" via JSON.stringify
+    expect(result).not.toContain("\u001b[31m");
+    expect(result).toContain("\\u001b");
   });
 });

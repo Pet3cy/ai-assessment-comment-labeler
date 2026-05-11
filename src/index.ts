@@ -1,5 +1,7 @@
+import ModelClient from "@azure-rest/ai-inference";
+import { AzureKeyCredential } from "@azure/core-auth";
 import { context, getOctokit } from "@actions/github";
-import { getInput, setOutput } from "@actions/core";
+import { getInput, setOutput, getBooleanInput } from "@actions/core";
 import { aiInference } from "./ai";
 import {
   getPromptFilesFromLabels,
@@ -7,6 +9,7 @@ import {
   writeActionSummary,
   getPromptOptions,
   getRegexFromString,
+  sanitizeLog,
   getBaseFilename,
 } from "./utils";
 import {
@@ -17,7 +20,7 @@ import {
 } from "./api";
 import type { Label } from "./types";
 
-const main = async () => {
+export const main = async () => {
   // Required inputs
   const token = getInput("token") || process.env.GITHUB_TOKEN;
   const owner = getInput("owner") || context?.repo?.owner;
@@ -68,9 +71,11 @@ const main = async () => {
     ? parseInt(getInput("max_tokens"), 10)
     : undefined;
 
+  const client = ModelClient(endpoint, new AzureKeyCredential(token));
+
   // Optional suppressing inputs
-  const suppressLabelsInput = getInput("suppress_labels") === "true";
-  const suppressCommentsInput = getInput("suppress_comments") === "true";
+  const suppressLabelsInput = getBooleanInput("suppress_labels");
+  const suppressCommentsInput = getBooleanInput("suppress_comments");
 
   // Get Labels from the issue
   let issueLabels: Label[] = context?.payload?.issue?.labels ?? [];
@@ -95,20 +100,23 @@ const main = async () => {
   );
   if (!requireAiReview) {
     console.log(
-      `No AI review required. Issue does not have label: ${aiReviewLabel}`,
+      `No AI review required. Issue does not have label: ${sanitizeLog(aiReviewLabel)}`,
     );
     return;
   }
 
   // Remove the aiReviewLabel trigger label
-  console.log(`Removing label: ${aiReviewLabel}`);
-  await removeIssueLabel({
+  console.log(`Removing label: ${sanitizeLog(aiReviewLabel)}`);
+  const labelRemoved = await removeIssueLabel({
     octokit,
     owner,
     repo,
     issueNumber,
     label: aiReviewLabel,
   });
+  if (!labelRemoved) {
+    console.warn(`Failed to remove label: ${sanitizeLog(aiReviewLabel)}`);
+  }
 
   // Get Prompt file based on issue labels and mapping
   const promptFiles = getPromptFilesFromLabels({
@@ -124,14 +132,12 @@ const main = async () => {
     return;
   }
 
-  const labelsToAdd: string[] = [];
-  const outPutAssessments = [];
-  for (const promptFile of promptFiles) {
-    console.log(`Using prompt file: ${promptFile}`);
+  const processPrompt = async (promptFile: string) => {
+    console.log(`Using prompt file: ${sanitizeLog(promptFile)}`);
     const promptOptions = getPromptOptions(promptFile, promptsDirectory);
 
     const aiResponse = await aiInference({
-      token,
+      client,
       content: issueBody,
       systemPromptMsg: promptOptions.systemMsg,
       endpoint: endpoint,
@@ -163,24 +169,36 @@ const main = async () => {
         aiResponse,
         aiAssessmentRegex,
       );
-      labelsToAdd.push(assessmentLabel);
 
       writeActionSummary({
         promptFile,
         aiResponse,
         assessmentLabel,
       });
-      outPutAssessments.push({
-        prompt: promptFile,
-        assessmentLabel,
-        response: aiResponse,
-      });
+
+      return {
+        label: assessmentLabel,
+        assessment: {
+          prompt: promptFile,
+          assessmentLabel,
+          response: aiResponse,
+        },
+      };
     } else {
       console.log("No response received from AI.");
       const fileName = getBaseFilename(promptFile);
-      labelsToAdd.push(`ai:${fileName}:unable-to-process`);
+      return {
+        label: `ai:${fileName}:unable-to-process`,
+        assessment: null,
+      };
     }
-  }
+  };
+
+  const results = await Promise.all(promptFiles.map(processPrompt));
+  const labelsToAdd = results.map((r) => r.label);
+  const outPutAssessments = results
+    .map((r) => r.assessment)
+    .filter((a) => a !== null);
 
   setOutput("ai_assessments", JSON.stringify(outPutAssessments));
 
@@ -190,14 +208,17 @@ const main = async () => {
   }
 
   if (labelsToAdd.length > 0) {
-    console.log(`Adding labels: ${labelsToAdd.join(", ")}`);
-    await addIssueLabels({
+    console.log(`Adding labels: ${labelsToAdd.map(sanitizeLog).join(", ")}`);
+    const labelsAdded = await addIssueLabels({
       octokit,
       owner,
       repo,
       issueNumber,
       labels: labelsToAdd,
     });
+    if (!labelsAdded) {
+      throw new Error("Failed to add labels to the issue");
+    }
   } else {
     console.log("No labels to add found.");
   }

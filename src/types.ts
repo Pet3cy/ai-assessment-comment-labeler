@@ -1,3 +1,7 @@
+import ModelClient from "@azure-rest/ai-inference";
+
+type ModelClientType = ReturnType<typeof ModelClient>;
+
 import { GitHub } from "@actions/github/lib/utils";
 
 export type AiInferenceFn = (
@@ -7,9 +11,9 @@ export type AiInferenceFn = (
 interface AiInferenceParams {
   systemPromptMsg: string;
   endpoint: string;
+  client: ModelClientType;
   modelName: string;
   maxTokens: number;
-  token: string;
   content: string;
 }
 
@@ -60,7 +64,7 @@ interface CreateCommentParams {
   body: string;
 }
 
-export type AddIssueLabelsFn = (params: AddLabelsParams) => Promise<void>;
+export type AddIssueLabelsFn = (params: AddLabelsParams) => Promise<boolean>;
 
 interface AddLabelsParams {
   octokit: InstanceType<typeof GitHub>;
@@ -70,7 +74,7 @@ interface AddLabelsParams {
   labels: string[];
 }
 
-export type RemoveIssueLabelFn = (params: RemoveLabelParams) => Promise<void>;
+export type RemoveIssueLabelFn = (params: RemoveLabelParams) => Promise<boolean>;
 
 interface RemoveLabelParams {
   octokit: InstanceType<typeof GitHub>;
